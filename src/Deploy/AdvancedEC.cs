@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using ModuleWheels;
+using System.Collections.Generic;
 
-// This class is a Reliability modified.
 namespace KERBALISM
 {
   public sealed class AdvancedEC : PartModule
@@ -12,7 +11,7 @@ namespace KERBALISM
 
     [KSPField(guiName = "EC Usage", guiUnits = "/sec", guiActive = false, guiFormat = "F3")]
     public double actualCost = 0;                           // Show Energy Consume
-    List<PartModule> modules;                               // components cache
+    PartModule module;                                      // component cache, the Reliability.cs is one to many, instead the AdvancedEC will be one to one
 
     bool hasEnergy;                                         // Check if vessel has energy, otherwise will disable animations and functions
     bool isConsuming;                                       // Device is consuming energy
@@ -25,8 +24,7 @@ namespace KERBALISM
 
     // Exclusive properties to special cases
     // CommNet Antennas
-    [KSPField(isPersistant = true)] public double antennaPower;   // CommNet don't ignore ModuleDataTransmitter disabled, this way I have to set power to 0 to disable it.
-
+    [KSPField(isPersistant = true)] public double antennaPower;   // CommNet doesn't ignore ModuleDataTransmitter disabled, this way I have to set power to 0 to disable it.
 
     public override void OnStart(StartState state)
     {
@@ -37,7 +35,7 @@ namespace KERBALISM
       if (!Lib.IsFlight() || !Features.AdvancedEC) return;
 
       // cache list of modules
-      modules = part.FindModulesImplementing<PartModule>().FindAll(k => k.moduleName == type);
+      module = part.FindModulesImplementing<PartModule>().FindLast(k => k.moduleName == type);
 
       // setup UI
       Fields["actualCost"].guiActive = true;
@@ -45,16 +43,6 @@ namespace KERBALISM
       // get energy from cache
       resources = ResourceCache.Info(vessel, "ElectricCharge");
       hasEnergy = resources.amount > double.Epsilon;
-
-      // sync monobehaviour state with module state
-      // - required as the monobehaviour state is not serialized
-      if (!hasEnergy)
-      {
-        foreach (PartModule m in modules)
-        {
-          m.enabled = false;
-        }
-      }
     }
 
     public void Update()
@@ -71,19 +59,11 @@ namespace KERBALISM
           // UI
           UI_Update(hasEnergy);
 
-          // enforce state
-          foreach (PartModule m in modules)
-          {
-            m.enabled = hasEnergy;
-            m.isEnabled = hasEnergy;
-          }
-
           if (!isInitialized)
           {
             Lib.Debug("Initializing with hasEnergy = {0}", hasEnergy);
-            antennaPower = new AntennaEC(part.FindModuleImplementing<ModuleDataTransmitter>(), extra_Cost, extra_Deploy, antennaPower).Init(antennaPower);
+            if(Features.KCommNet) antennaPower = new AntennaEC(part.FindModuleImplementing<ModuleDataTransmitter>(), extra_Cost, extra_Deploy, antennaPower).Init(antennaPower);
           }
-          Lib.Debug("Energy state has changed: {0}", hasEnergy);
         }
 
         if (!hasEnergy)
@@ -124,8 +104,15 @@ namespace KERBALISM
       switch (type)
       {
         case "ModuleDataTransmitter":
-          ModuleDataTransmitter x = part.FindModuleImplementing<ModuleDataTransmitter>();
-          modReturn = new AntennaEC(x, extra_Cost, extra_Deploy, antennaPower).GetConsume();
+          modReturn = new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GetConsume();
+          actualCost = modReturn.Value;
+          return modReturn.Key;
+        case "Antenna":
+          modReturn = new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GetConsume();
+          actualCost = modReturn.Value;
+          return modReturn.Key;
+        case "ModuleWheelDeployment":
+          modReturn = new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).GetConsume();
           actualCost = modReturn.Value;
           return modReturn.Key;
       }
@@ -133,14 +120,18 @@ namespace KERBALISM
       return true;
     }
 
-    // apply type-specific hacks to enable/disable the module
     void UI_Update(bool b)
     {
       switch (type)
       {
         case "ModuleDataTransmitter":
-          ModuleDataTransmitter x = part.FindModuleImplementing<ModuleDataTransmitter>();
-          new AntennaEC(x, extra_Cost, extra_Deploy, antennaPower).UI_Update(b);
+          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).UI_Update(b);
+          break;
+        case "Antenna":
+          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).UI_Update(b);
+          break;
+        case "ModuleWheelDeployment":
+          new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).UI_Update(b);
           break;
       }
     }
@@ -150,8 +141,13 @@ namespace KERBALISM
       switch (type)
       {
         case "ModuleDataTransmitter":
-          ModuleDataTransmitter x = part.FindModuleImplementing<ModuleDataTransmitter>();
-          new AntennaEC(x, extra_Cost, extra_Deploy, antennaPower).FixCommNetAntenna(b);
+          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).FixModule(b);
+          break;
+        case "Antenna":
+          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).FixModule(b);
+          break;
+        case "ModuleWheelDeployment":
+          new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).FixModule(b);
           break;
       }
     }

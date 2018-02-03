@@ -4,11 +4,16 @@ namespace KERBALISM
 {
   public abstract class ECDevice
   {
-    public abstract KeyValuePair<bool, double> GetConsume();
+    public KeyValuePair<bool, double> GetConsume()
+    {
+      return new KeyValuePair<bool, double>(IsConsuming, actualCost);
+    }
 
-    public abstract bool IsConsuming { get; }
+    protected abstract bool IsConsuming { get; }
 
     public abstract void UI_Update(bool hasEnergy);
+
+    public abstract void FixModule(bool hasEnergy);
 
     public void ToggleActions(PartModule partModule, bool value)
     {
@@ -18,5 +23,10 @@ namespace KERBALISM
         ac.active = value;
       }
     }
+
+    // Return
+    public double actualCost;
+    public double extra_Cost;
+    public double extra_Deploy;
   }
 }

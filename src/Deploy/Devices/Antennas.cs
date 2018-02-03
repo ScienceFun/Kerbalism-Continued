@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace KERBALISM
+﻿namespace KERBALISM
 {
   public class AntennaEC : ECDevice
   {
@@ -26,12 +24,7 @@ namespace KERBALISM
       return (currentPower != transmitter.antennaPower && transmitter.antennaPower > 0 ? transmitter.antennaPower : currentPower);
     }
 
-    public override KeyValuePair<bool, double> GetConsume()
-    {
-      return new KeyValuePair<bool, double>(IsConsuming, actualCost);
-    }
-
-    public override bool IsConsuming
+    protected override bool IsConsuming
     {
       get
       {
@@ -91,12 +84,13 @@ namespace KERBALISM
         {
           if (animator != null)
           {
-            if(animator.DeployAnimation.isPlaying)
+            Lib.Debug("Activing buttons for '{0}' antenna", antenna.part.partInfo.title);
+            if (animator.DeployAnimation.isPlaying)
             {
               animator.Events["RetractModule"].active = false;
               animator.Events["DeployModule"].active = false;
             }
-            else if (animator.isDeployed)
+            if (animator.isDeployed)
             {
               animator.Events["RetractModule"].active = true;
               animator.Events["DeployModule"].active = false;
@@ -112,6 +106,7 @@ namespace KERBALISM
         {
           if (animator != null)
           {
+            Lib.Debug("Desactiving buttons");
             // Don't allow extending/retracting when has no ec
             animator.Events["RetractModule"].active = false;
             animator.Events["DeployModule"].active = false;
@@ -155,10 +150,14 @@ namespace KERBALISM
       }
     }
 
-    public void FixCommNetAntenna(bool hasEnergy)
+    public override void FixModule(bool hasEnergy)
     {
       double right;
-      if (Features.KCommNet)
+      if (Features.Signal)
+      {
+        if (animator != null) ToggleActions(animator, hasEnergy);
+      }
+      else if (Features.KCommNet)
       {
         // Save antennaPower
         antennaPower = (antennaPower != transmitter.antennaPower && transmitter.antennaPower > 0 ? transmitter.antennaPower : antennaPower);
@@ -166,7 +165,6 @@ namespace KERBALISM
         if (stockAnim != null)
         {
           ToggleActions(stockAnim, hasEnergy);
-
           if (stockAnim.deployState == ModuleDeployablePart.DeployState.EXTENDED)
           {
             // Recover antennaPower only if antenna is Extended
@@ -204,12 +202,6 @@ namespace KERBALISM
     ModuleDataTransmitter transmitter;
     ModuleDeployableAntenna stockAnim;
 
-    // Logical
-    double extra_Cost;
-    double extra_Deploy;
     double antennaPower;
-
-    // Return
-    double actualCost;
   }
 }
