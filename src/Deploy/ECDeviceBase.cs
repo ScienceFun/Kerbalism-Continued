@@ -2,7 +2,7 @@
 
 namespace KERBALISM
 {
-  public abstract class ECDevice
+  public abstract class ECDeviceBase
   {
     public KeyValuePair<bool, double> GetConsume()
     {

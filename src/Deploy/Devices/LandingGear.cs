@@ -2,7 +2,7 @@
 
 namespace KERBALISM
 {
-  public class LandingGearEC : ECDevice
+  public class LandingGearEC : ECDeviceBase
   {
     public LandingGearEC(ModuleWheelDeployment landingGear, double extra_Deploy)
     {

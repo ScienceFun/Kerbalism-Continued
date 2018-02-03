@@ -1,6 +1,6 @@
 ﻿namespace KERBALISM
 {
-  public class AntennaEC : ECDevice
+  public class AntennaEC : ECDeviceBase
   {
     public AntennaEC(Antenna antenna, double extra_Cost, double extra_Deploy)
     {
@@ -71,7 +71,6 @@
             return true;
           }
         }
-        actualCost = 0;
         return false;
       }
     }
@@ -155,6 +154,10 @@
       double right;
       if (Features.Signal)
       {
+        // Makes antenna valid to AntennaInfo
+        // TODO: review if has a better way to do it
+        antenna.extended = hasEnergy;
+
         if (animator != null) ToggleActions(animator, hasEnergy);
       }
       else if (Features.KCommNet)
