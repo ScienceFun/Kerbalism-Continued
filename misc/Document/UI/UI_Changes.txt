@@ -1,0 +1,4 @@
+﻿1) Added tab NetInfo (Only when KCommNet is enabled)
+  - Contains information about frequencies
+2) Alter Panel to support frequency system
+  - When Panel is isFreqSelector == True, will be different of the regular panel.

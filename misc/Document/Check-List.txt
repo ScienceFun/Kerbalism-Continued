@@ -1,0 +1,149 @@
+﻿Review Status
+- Background.cs             - TODO: Implement support to CommNet
+- EVA.cs                    - Done
+- Radiation.cs              - Done
+- Resource.cs               - Done
+- Sim.cs                    - Done
+- Storm.cs                  - Done
+
+- Automation
+    - Computer.cs           - TODO: Implement support to CommNet
+    - Device.cs             - Done
+    - Scripts.cs            - Done
+      - Devices
+        - Antennas.cs       - TODO: Testing Broken status for CommNet
+        - Converter.cs      - TODO: Review if need add support to Deploy System
+        - Drill.cs          - TODO: Review if need add support to Deploy System
+        - Emitter.cs        - TODO: Review if need add support to Deploy System
+        - Experiment.cs     - TODO: Review if need add support to Deploy System
+        - Generator.cs      - TODO: Review if need add support to Deploy System
+        - Greenhouse.cs     - TODO: Review if need add support to Deploy System
+        - Harvester.cs      - TODO: Review if need add support to Deploy System
+        - Laboratory.cs     - TODO: Review if need add support to Deploy System
+        - Light.cs          - TODO: Review if need add support to Deploy System ( This I think is already correct)
+        - NetDevice.cs      - TODO: Review ProtoPart info
+        - Panel.cs          - TODO: add support to Deploy System
+        - Process.cs        - TODO: Review if need add support to Deploy System
+        - Ring.cs           - TODO: Review if need add support to Deploy System
+        - Scanner.cs        - TODO: Review if need add support to Deploy System
+
+- Cache
+    - Antenna_Info.cs       - Done
+    - Cache.cs              - TODO: Implementing antenna cache
+    - Vessel_Info.cs        - TODO: Add support to antenna cache
+
+- Contracts - DONE
+    - CrossBelt.cs          - Done
+    - CrossHeliopause.cs    - Done
+    - MannedOrbit.cs        - Done
+    - SpaceAnalysis.cs      - Done
+    - SpaceHarvest.cs       - Done
+
+- Database - DONE
+    - BodyData.cs           - Done
+    - DB.cs                 - Done
+    - KerbalData.cs         - Done
+    - LandmarkData.cs       - Done
+    - RuleData.cs           - Done
+    - SupplyData.cs         - Done
+    - UIData.cs             - Done
+    - VesselData.cs         - Done
+
+- Deploy
+    - AntennaDeploy.cs      - Done
+
+- External - DONE
+    - RemoteTech.cs         - Done
+    - SCANsat.cs            - Done
+
+- Modules
+    - Antenna.cs            - TODO: Review behavior when antenna is broken
+    - Confort.cs            - TODO: Implement lights ON (When lights OFF and Kerbal in shadow = less confort)
+    - Configure.cs          - Done
+    - DataStream.cs         - Done
+    - Emitter.cs            - Done
+    - Experiment.cs         - TODO - Review Code to consume EC
+    - GravityRing.cs        - Done
+    - Greenhouse.cs         - Done
+    - Habitat.cs            - Done
+    - HardDrive.cs          - TODO: Review code, Implement HD size ( Try integrate it with KOS )
+    - Harvester.cs          - TODO: Changes review ( Added condition to stop mining when has no ec)
+    - Laboratory.cs         - TODO: Review to implement consume EC
+    - PlannerController.cs  - Done
+    - ProcessController.cs  - Done
+    - Reliability.cs        - Done
+    - Sensor.cs             - Done
+    - WrapFixer.cs          - Done
+
+- Profile - DONE
+    - Modifiers.cs          - Done
+    - Process.cs            - Done
+    - Profile.cs            - Done
+    - Rule.cs               - Done
+    - Supply.cs             - Done
+
+- Renderer - DONE
+    - LineRenderer.cs       - Done
+    - ParticleMesh.cs       - Done
+    - ParticleRenderer.cs   - Done
+
+- Science
+    - Drive.cs              - Done
+    - ExperimentInfo.cs     - Done
+    - File.cs               - Done
+    - Hijacker.cs           - Done
+    - MetaData.cs           - Done
+    - MiniHijacker.cs       - Done
+    - Sample.cs             - Done
+    - Science.cs            - TODO: Implement support to CommNet
+
+- Signal
+    - ConnectionInfo.cs     - Done
+    - KAntennaInfo.cs       - Done (AntennaInfo renamed)
+    - Signal.cs             - TODO: review Other Connection
+      - KCommNet
+        - AntennaInfo.cs      - TODO: Implementing
+        - AntennaPartInfo.cs  - TODO: Implementing
+          - CommNetLayer
+            - KCommNetBody.cs     - TODO: Review connections
+            - KCommNetHome.cs     - TODO: Review connections
+            - KCommNetNetwork.cs  - TODO: Review connections
+            - KCommNetScenario.cs - TODO: Review connections
+            - KCommNetUI.cs       - TODO: Review connections
+            - KCommNetVessel.cs   - TODO: Review connections
+            - KCommNetwork.cs     - TODO: Review connections
+
+- System
+    - Callbacks.cs          - TODO: New review, error on AddEditorCatagory()
+    - Kerbalism.cs          - Done
+    - Loader.cs             - DOne
+
+- UI
+    - BodyInfo.cs           - Done
+    - DevManager.cs         - Done
+    - FileManager.cs        - Done
+    - Icons.cs              - Done
+    - Launcher.cs           - Done
+    - Message.cs            - Done
+    - Monitor.cs            - TODO: Alter Indicator_Signal to show frequency
+    - NetInfo.cs            - TODO: Implementing - TEST
+    - Panel.cs              - TODO: I added isFreqSelector in all logical of this class
+    - Planner.cs            - TODO: Implement support to CommNet
+    - Styles.cs             - Done
+    - Telemetry.cs          - Done
+    - TimeOut.cs            - Done
+    - Tooltip.cs            - Done
+    - UI.cs                 - Done
+    - VesselConfig.cs       - Done
+    - Windows.cs            - Done
+
+- Utility - DONE
+    - Animator.cs           - Done
+    - Archive.cs            - Done
+    - CrewSpecs.cs          - Done
+    - DumpSpec.cs           - Done
+    - Highlighter.cs        - Done
+    - Lib.cs                - Done
+    - Profiler.cs           - Done
+    - Space.cs              - Done
+    - Specifics.cs          - Done
