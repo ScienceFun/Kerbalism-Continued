@@ -132,7 +132,7 @@ Have a look at System/API.cs source code on github. Raise an issue to request mo
 
 ### REQUIREMENTS
 
-- KSP 1.3.0
+- KSP 1.3.1
 - ModuleManager 2.8.0+
 
 ### LICENSE
