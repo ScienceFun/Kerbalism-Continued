@@ -38,7 +38,7 @@
       }
     }
 
-    public override void UI_Update(bool hasEnergy)
+    public override void GUI_Update(bool hasEnergy)
     {
       if (light1 != null)
       {
