@@ -92,23 +92,23 @@ namespace KERBALISM
       switch (type)
       {
         case "ModuleDataTransmitter":
-          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).UI_Update(b);
+          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GUI_Update(b);
           break;
 
         case "Antenna":
-          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).UI_Update(b);
+          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GUI_Update(b);
           break;
 
         case "ModuleWheelDeployment":
-          new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).UI_Update(b);
+          new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).GUI_Update(b);
           break;
 
         case "ModuleColorChanger":
-          new LightsEC(module as ModuleColorChanger, extra_Cost).UI_Update(b);
+          new LightsEC(module as ModuleColorChanger, extra_Cost).GUI_Update(b);
           break;
 
         case "ModuleAnimationGroup":
-          new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).UI_Update(b);
+          new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GUI_Update(b);
           break;
       }
     }
@@ -149,7 +149,7 @@ namespace KERBALISM
       switch (type)
       {
         case "ModuleAnimateGeneric":
-          new LightsEC(module as ModuleAnimateGeneric, extra_Cost).UI_Update(b);
+          new LightsEC(module as ModuleAnimateGeneric, extra_Cost).GUI_Update(b);
           break;
       }
     }

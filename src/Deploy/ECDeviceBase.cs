@@ -11,7 +11,7 @@ namespace KERBALISM
 
     protected abstract bool IsConsuming { get; }
 
-    public abstract void UI_Update(bool hasEnergy);
+    public abstract void GUI_Update(bool hasEnergy);
 
     public abstract void FixModule(bool hasEnergy);
 

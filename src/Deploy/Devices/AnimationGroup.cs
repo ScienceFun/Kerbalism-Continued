@@ -21,7 +21,7 @@
       }
     }
 
-    public override void UI_Update(bool hasEnergy)
+    public override void GUI_Update(bool hasEnergy)
     {
       Lib.Debug("Buttons is '{0}' for '{1}' moduleAnimationGroup", (hasEnergy == true ? "ON" : "OFF"), module.part.partInfo.title);
       module.Events["RetractModule"].guiActive = module.isDeployed && hasEnergy;
