@@ -258,9 +258,9 @@ namespace KERBALISM
 
   public sealed class AntennasEC : PartModule
   {
-    [KSPField(isPersistant = true)] public string type;                  // component name
-    [KSPField] public double extra_Cost;                             // extra energy cost to keep the part active
-    [KSPField] public double extra_Deploy;                           // extra eergy cost to do a deploy(animation)
+    [KSPField] public string type;                                // component name
+    [KSPField] public double extra_Cost;                          // extra energy cost to keep the part active
+    [KSPField] public double extra_Deploy;                        // extra eergy cost to do a deploy(animation)
     [KSPField(isPersistant = true)] public double antennaPower;   // CommNet doesn't ignore ModuleDataTransmitter disabled, this way I have to set power to 0 to disable it.
 
     PartModule module;                                            // component cache, the Reliability.cs is one to many, instead the AdvancedEC will be one to one

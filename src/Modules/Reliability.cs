@@ -5,7 +5,7 @@ namespace KERBALISM
 {
   public sealed class Reliability : PartModule, ISpecifics, IModuleInfo, IPartCostModifier, IPartMassModifier
   {
-    [KSPField(isPersistant = true)] public string type;                 // component name
+    [KSPField] public string type;                                      // component name
     [KSPField] public double mtbf   = 21600000.0;                       // mean time between failures, in seconds
     [KSPField] public string repair = string.Empty;                     // repair crew specs
     [KSPField] public string title  = string.Empty;                     // short description of component
@@ -21,6 +21,12 @@ namespace KERBALISM
 
     [KSPField(guiActive = false, guiName = "_")] public string Status;  // show component status
 
+
+#if DEBUG
+    [KSPField(guiName = "Type", guiUnits = "", guiActive = true, guiFormat = "")]
+    string vType;
+#endif
+
     List<PartModule> modules;                                           // components cache
     CrewSpecs repair_cs;                                                // crew specs
 
@@ -35,8 +41,12 @@ namespace KERBALISM
       // cache list of modules
       modules = part.FindModulesImplementing<PartModule>().FindAll(k => k.moduleName == type);
 
-      // parse crew specs
-      repair_cs = new CrewSpecs(repair);
+#if DEBUG
+      vType = (type == null ? "NULL" : type);
+#endif
+
+            // parse crew specs
+            repair_cs = new CrewSpecs(repair);
 
       // setup ui
       Fields["Status"].guiName = title;
