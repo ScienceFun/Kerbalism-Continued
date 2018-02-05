@@ -394,12 +394,12 @@ namespace KERBALISM
     // apply type-specific hacks to enable/disable the module
     void Apply(bool b)
     {
-      switch (type)
+      switch(type)
       {
         case "ProcessController":
           if (b)
           {
-            foreach (PartModule m in modules)
+            foreach(PartModule m in modules)
             {
               Lib.SetResourceFlow(part, (m as ProcessController).resource, false);
             }
@@ -417,7 +417,7 @@ namespace KERBALISM
         case "ModuleLight":
           if (b)
           {
-            foreach (PartModule m in modules)
+            foreach(PartModule m in modules)
             {
               ModuleLight light = m as ModuleLight;
               if (light.animationName.Length > 0)
@@ -426,7 +426,7 @@ namespace KERBALISM
               }
               else
               {
-                part.FindModelComponents<Light>().ForEach(k => k.enabled = false);
+                part.FindModelComponents<Light>().ForEach(k => k.enabled = false );
               }
             }
           }
@@ -436,22 +436,12 @@ namespace KERBALISM
         case "ModuleEnginesFX":
           if (b)
           {
-            foreach (PartModule m in modules)
+            foreach(PartModule m in modules)
             {
               (m as ModuleEngines).Shutdown();
             }
           }
           break;
-
-        //case "ModuleDataTransmitter":
-        //  if (b)
-        //  {
-        //    foreach(ModuleDataTransmitter m in modules)
-        //    {
-        //      new AntennaEC(m as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).FixModule(b);
-        //    }
-        //    break;
-        //  }
       }
     }
 
