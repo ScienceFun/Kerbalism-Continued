@@ -17,7 +17,7 @@ namespace KERBALISM
 
     public void ToggleActions(PartModule partModule, bool value)
     {
-      Lib.Debug("'{0}' module, setting actions to {1}", partModule.moduleName, value ? "ON" : "OFF");
+      Lib.Debug("Part '{0}'.'{1}', setting actions to {2}", partModule.part.partInfo.title, partModule.moduleName, value ? "ON" : "OFF");
       foreach (BaseAction ac in partModule.Actions)
       {
         ac.active = value;

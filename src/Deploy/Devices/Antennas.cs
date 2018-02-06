@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace KERBALISM
 {
@@ -256,165 +257,151 @@ namespace KERBALISM
     double antennaPower;
   }
 
-  public sealed class AntennasEC : PartModule
+  public sealed class AntennasEC : AdvancedEC
   {
-    [KSPField] public string type;                                // component name
-    [KSPField] public double extra_Cost;                          // extra energy cost to keep the part active
-    [KSPField] public double extra_Deploy;                        // extra eergy cost to do a deploy(animation)
     [KSPField(isPersistant = true)] public double antennaPower;   // CommNet doesn't ignore ModuleDataTransmitter disabled, this way I have to set power to 0 to disable it.
-
-    PartModule module;                                            // component cache, the Reliability.cs is one to many, instead the AdvancedEC will be one to one
-
-    [KSPField(guiName = "EC Usage", guiUnits = "/sec", guiActive = false, guiFormat = "F3")]
-    double actualCost = 0;                                        // Energy Consume
-
-    KeyValuePair<bool, double> modReturn;                         // Return from ECDevice
-
-    bool hasEnergy;                                               // Check if vessel has energy, otherwise will disable animations and functions
-    bool isConsuming;                                             // Module is consuming energy
-    bool isInitialized;
-
-    bool hasUpdateEnergyChanged;                                  // Energy state has changed since last update?
-    bool hasFixedEnergyChanged;                                   // Energy state has changed since last update?
-
-    public Resource_Info resources;
     public ModuleAnimateGeneric customAnim;                       // Support to custom animation for ModuleDataTransmitter module
 
     public override void OnStart(StartState state)
     {
-      // do nothing in the editors and when compiling part or when advanced EC is not enabled
-      if (!Lib.IsFlight() || !Features.AdvancedEC) return;
+      base.OnStart(state);
 
-      // cache list of modules
-      module = part.FindModulesImplementing<PartModule>().FindLast(k => k.moduleName == type);
+      // don't break tutorial scenarios & do something only in Flight scenario
+      if (Lib.DisableScenario(this) || !Lib.IsFlight()) return;
 
-      // setup UI
-      Fields["actualCost"].guiActive = true;
+      if (!Features.Signal)
+      {
+        ModuleDataTransmitter transmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
+        if (transmitter != null) antennaPower = new AntennaEC(part.FindModuleImplementing<ModuleDataTransmitter>(), extra_Cost, extra_Deploy, antennaPower).Init(antennaPower);
+      }
+      // verify if is using custom animation for CommNet
+      customAnim = part.FindModuleImplementing<ModuleAnimateGeneric>();
     }
 
-    public void Update()
+    public override void Update()
     {
-      if (Lib.IsFlight() && Features.AdvancedEC)
+      if (!Lib.IsFlight()) return;
+
+      // get energy from cache
+      resources = ResourceCache.Info(vessel, "ElectricCharge");
+      hasEnergy = ResourceCache.Info(vessel, "ElectricCharge").amount > double.Epsilon;
+
+      // Update UI only if hasEnergy has changed or if is broken state has changed
+      if (broken)
       {
-        // get energy from cache
-        resources = ResourceCache.Info(vessel, "ElectricCharge");
-        hasEnergy = resources.amount > double.Epsilon;
-
-        // Update UI only if hasEnergy has changed or if is the first time
-        if (hasUpdateEnergyChanged != hasEnergy || !isInitialized)
+        if (broken != lastBrokenState)
         {
-          Lib.Debug("Energy state has changed: {0}", hasEnergy);
-
-          if(!isInitialized)
-          {
-            antennaPower = new AntennaEC(part.FindModuleImplementing<ModuleDataTransmitter>(), extra_Cost, extra_Deploy, antennaPower).Init(antennaPower);
-            // verify if is using custom animation for CommNet
-            customAnim = part.FindModuleImplementing<ModuleAnimateGeneric>();
-
-            Lib.Debug("'{0}' has antennaPower: {1}", part.partInfo.title, antennaPower);
-            Lib.Debug("'{0}' has extra_Cost: {1}", part.partInfo.title, extra_Cost);
-            Lib.Debug("'{0}' has extra_Deploy: {1}", part.partInfo.title, extra_Deploy);
-            Lib.Debug("customAnim isNull: {0}", customAnim== null);
-            isInitialized = true;
-          }
-
-          // Update UI
-          GUI_Update(hasEnergy);
-          hasUpdateEnergyChanged = hasEnergy;
+          Update_UI(!broken);
         }
+      }
+      else if (hasEnergyChanged != hasEnergy)
+      {
+        Lib.Debug("Energy state has changed: {0}", hasEnergy);
+        hasEnergyChanged = hasEnergy;
+        // Update UI
+        Update_UI(hasEnergy);
+      }
+      // Constantly Update UI for special modules
+      if (customAnim != null)
+      {
+        if (broken) Constant_OnGUI(!broken);
+        else Constant_OnGUI(hasEnergy);
+      }
 
-        if (!hasEnergy)
-        {
-          actualCost = 0;
-          isConsuming = false;
-        }
-        else
-        {
-          isConsuming = GetIsConsuming();
-        }
-
-        // Constantly Update UI for special modules
-        if(customAnim != null) Constant_OnGUI(hasEnergy);
+      if (!hasEnergy || broken)
+      {
+        actualCost = 0;
+        isConsuming = false;
+      }
+      else
+      {
+        isConsuming = GetIsConsuming();
       }
     }
 
-    public void FixedUpdate()
+    public override bool GetIsConsuming()
     {
-      if (Lib.IsFlight() && Features.AdvancedEC)
+      try
       {
-        if (hasFixedEnergyChanged != hasEnergy || !isInitialized)
+        switch (type)
         {
-          if(!isInitialized) Lib.Debug("Energy state has changed: {0}", hasEnergy);
-          FixModule(hasEnergy);
-
-          hasFixedEnergyChanged = hasEnergy;
-        }
-
-        if (isConsuming)
-        {
-          if (resources != null) resources.Consume(actualCost * Kerbalism.elapsed_s);
+          case "ModuleDataTransmitter":
+            modReturn = new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GetConsume();
+            actualCost = modReturn.Value;
+            return modReturn.Key;
+          case "Antenna":
+            modReturn = new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GetConsume();
+            actualCost = modReturn.Value;
+            return modReturn.Key;
         }
       }
-    }
-
-    public bool GetIsConsuming()
-    {
-      switch (type)
+      catch(Exception e)
       {
-        case "ModuleDataTransmitter":
-          modReturn = new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
-
-        case "Antenna":
-          modReturn = new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
       actualCost = extra_Deploy;
       return true;
     }
 
-    public void GUI_Update(bool b)
+    public override void Update_UI(bool isEnabled)
     {
-      Lib.Debug("Type is '{0}'", type);
-      Lib.Debug("Module isNull: {0}", module == null);
-      switch (type)
+      try
       {
-        case "ModuleDataTransmitter":
-          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GUI_Update(b);
-          break;
-
-        case "Antenna":
-          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GUI_Update(b);
-          break;
+        switch (type)
+        {
+          case "ModuleDataTransmitter":
+            new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GUI_Update(isEnabled);
+            break;
+          case "Antenna":
+            new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GUI_Update(isEnabled);
+            break;
+        }
+      }
+      catch (Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
     }
 
-    public void FixModule(bool b)
+    public override void FixModule(bool isEnabled)
     {
-      switch (type)
+      try
       {
-        case "ModuleDataTransmitter":
-          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).FixModule(b);
-          break;
-
-        case "Antenna":
-          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).FixModule(b);
-          break;
+        switch (type)
+        {
+          case "ModuleDataTransmitter":
+            new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).FixModule(isEnabled);
+            break;
+          case "Antenna":
+            new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).FixModule(isEnabled);
+            break;
+        }
+      }
+      catch(Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
     }
 
     // Some modules need to constantly update UI
-    public void Constant_OnGUI(bool b)
+    public override void Constant_OnGUI(bool isEnabled)
     {
-      switch (type)
+      try
       {
-        case "ModuleDataTransmitter":
-          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GUI_Update(b);
-          break;
+        switch (type)
+        {
+          case "ModuleDataTransmitter":
+            new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GUI_Update(isEnabled);
+            break;
+          case "Antenna":
+            new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GUI_Update(isEnabled);
+            break;
+        }
+      }
+      catch (Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
     }
   }
-
 }

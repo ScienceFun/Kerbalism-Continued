@@ -1,6 +1,6 @@
 ﻿namespace KERBALISM
 {
-  public class LadderEC : AdvancedECBase
+  public class LadderEC : AdvancedEC
   {
     RetractableLadder ladder;
 
@@ -31,10 +31,7 @@
     public override void OnStart(StartState state)
     {
       // don't break tutorial scenarios
-      if (Lib.DisableScenario(this)) return;
-
-      // do nothing in the editors and when compiling part or when advanced EC is not enabled
-      if (!Lib.IsFlight() || !Features.AdvancedEC) return;
+      if (Lib.DisableScenario(this) || !Lib.IsFlight()) return;
 
       ladder = part.FindModuleImplementing<RetractableLadder>();
       // Replace the OnGUI
@@ -58,16 +55,16 @@
       return isPlaying;
     }
 
-    public override void OnGUI(bool hasEnergy)
+    public override void Update_UI(bool isEnabled)
     {
-      Events["RetractLadder"].guiActive = Events["RetractLadder"].guiActiveUnfocused = (targetState != "Retracted" && hasEnergy && !isPlaying);
-      Events["ExtendLadder"].guiActive = Events["ExtendLadder"].guiActiveUnfocused = (targetState == "Retracted" && hasEnergy && !isPlaying);
+      Events["RetractLadder"].guiActive = Events["RetractLadder"].guiActiveUnfocused = (targetState != "Retracted" && isEnabled && !isPlaying);
+      Events["ExtendLadder"].guiActive = Events["ExtendLadder"].guiActiveUnfocused = (targetState == "Retracted" && isEnabled && !isPlaying);
       Fields["moving"].guiActive = isPlaying;
     }
 
-    public override void FixModule(bool hasEnergy)
+    public override void FixModule(bool isEnabled)
     {
-      ToggleActions(ladder, hasEnergy);
+      ToggleActions(ladder, isEnabled);
     }
   }
 }

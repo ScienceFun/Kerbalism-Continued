@@ -92,7 +92,6 @@
     <Compile Include="Database\UIData.cs" />
     <Compile Include="Database\VesselData.cs" />
     <Compile Include="Deploy\AdvancedEC.cs" />
-    <Compile Include="Deploy\AdvancedECBase.cs" />
     <Compile Include="Deploy\Devices\AnimationGroup.cs" />
     <Compile Include="Deploy\Devices\LandingGear.cs" />
     <Compile Include="Deploy\Devices\Lights.cs" />

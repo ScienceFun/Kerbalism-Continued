@@ -1,156 +1,220 @@
 ﻿using ModuleWheels;
+using System;
 using System.Collections.Generic;
 
 namespace KERBALISM
 {
-  public sealed class AdvancedEC : AdvancedECBase
+  public class AdvancedEC : PartModule
   {
-    [KSPField] public string type;                          // component name
-    PartModule module;                                      // component cache, the Reliability.cs is one to many, instead the AdvancedEC will be one to one
+    [KSPField] public string type;                      // component name
+    [KSPField] public double extra_Cost = 0;            // extra energy cost to keep the part active
+    [KSPField] public double extra_Deploy = 0;          // extra eergy cost to do a deploy(animation)
 
-    KeyValuePair<bool, double> modReturn;                   // Return from ECDevice
+    [KSPField(isPersistant = false)] public bool broken;// true if broken
+    public bool lastBrokenState;                        // broken state has changed since last update?
 
-    // Exclusive properties to special cases
-    // CommNet Antennas
-    [KSPField(isPersistant = true)] public double antennaPower;   // CommNet doesn't ignore ModuleDataTransmitter disabled, this way I have to set power to 0 to disable it.
+    [KSPField(guiName = "EC Usage", guiUnits = "/s", guiActive = false, guiFormat = "F3")]
+    public double actualCost = 0;                       // Energy Consume
+
+    public bool hasEnergy;                              // Check if vessel has energy, otherwise will disable animations and functions
+    public bool isConsuming;                            // Module is consuming energy
+    public bool hasEnergyChanged;                       // Energy state has changed since last update?
+    public bool hasFixedEnergyChanged;                  // Energy state has changed since last fixed update?
+
+    public Resource_Info resources;
+
+    public PartModule module;                           // component cache, the Reliability.cs is one to many, instead the AdvancedEC will be one to one
+    public KeyValuePair<bool, double> modReturn;        // Return from ECDevice
 
     public override void OnStart(StartState state)
     {
-      // don't break tutorial scenarios
-      if (Lib.DisableScenario(this)) return;
-
-      // do nothing in the editors and when compiling part or when advanced EC is not enabled
-      if (!Lib.IsFlight() || !Features.AdvancedEC) return;
+      // don't break tutorial scenarios & do something only in Flight scenario
+      if (Lib.DisableScenario(this) || !Lib.IsFlight()) return;
 
       // cache list of modules
       module = part.FindModulesImplementing<PartModule>().FindLast(k => k.moduleName == type);
 
+      // Force the update to run at least once
+      lastBrokenState = !broken;
+      hasEnergyChanged = !hasEnergy;
+      hasFixedEnergyChanged = !hasEnergy;
+
       // setup UI
       Fields["actualCost"].guiActive = true;
+    }
+
+    public virtual void Update()
+    {
+      if (!Lib.IsFlight()) return;
 
       // get energy from cache
       resources = ResourceCache.Info(vessel, "ElectricCharge");
-      hasEnergy = resources.amount > double.Epsilon;
-    }
+      hasEnergy = ResourceCache.Info(vessel, "ElectricCharge").amount > double.Epsilon;
 
-    public override void Update()
-    {
-      if (Lib.IsFlight() && Features.AdvancedEC)
+      // Update UI only if hasEnergy has changed or if is broken state has changed
+      if (broken)
       {
-        base.Update();
-
-        // Update UI only if hasEnergy has changed or if is the first time
-        if (hasEnergyChanged != hasEnergy || !isInitialized)
+        if(broken != lastBrokenState)
         {
-          if (!isInitialized)
-          {
-            Lib.Debug("Initializing with hasEnergy = {0}", hasEnergy);
-            if(Features.KCommNet) antennaPower = new AntennaEC(part.FindModuleImplementing<ModuleDataTransmitter>(), extra_Cost, extra_Deploy, antennaPower).Init(antennaPower);
-          }
+          Update_UI(!broken);
         }
-        // Constantly Update UI for special modules
-        Constant_OnGUI(hasEnergy);
+      }
+      else if (hasEnergyChanged != hasEnergy)
+      {
+        Lib.Debug("Energy state has changed: {0}", hasEnergy);
+        hasEnergyChanged = hasEnergy;
+        // Update UI
+        Update_UI(hasEnergy);
+      }
+      // Constantly Update UI for special modules
+      if (broken) Constant_OnGUI(!broken);
+      else Constant_OnGUI(hasEnergy);
+
+      if (!hasEnergy || broken)
+      {
+        actualCost = 0;
+        isConsuming = false;
+      }
+      else
+      {
+        isConsuming = GetIsConsuming();
       }
     }
 
-    public override bool GetIsConsuming()
+    public virtual void FixedUpdate()
     {
-      switch (type)
+      if (!Lib.IsFlight()) return;
+
+      if(broken) 
       {
-        // TODO: code review, maybe is better to separate Antennas from main AdvancedEC class
-        case "ModuleDataTransmitter":
-          modReturn = new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
+        if (broken != lastBrokenState)
+        {
+          lastBrokenState = broken;
+          FixModule(!broken);
+        }
+      }
+      else if (hasEnergyChanged != hasEnergy)
+      {
+        hasFixedEnergyChanged = hasEnergy;
+        // Update module
+        FixModule(hasEnergy);
+      }
 
-        case "Antenna":
-          modReturn = new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
+      // If has energy and isConsuming
+      if (isConsuming)
+      {
+        if (resources != null) resources.Consume(actualCost * Kerbalism.elapsed_s);
+      }
+    }
 
-        case "ModuleWheelDeployment":
-          modReturn = new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
+    public virtual bool GetIsConsuming()
+    {
+      try
+      {
+        switch (type)
+        {
+          case "ModuleWheelDeployment":
+            modReturn = new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).GetConsume();
+            actualCost = modReturn.Value;
+            return modReturn.Key;
 
-        case "ModuleColorChanger":
-          modReturn = new LightsEC(module as ModuleColorChanger, extra_Cost).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
+          case "ModuleColorChanger":
+            modReturn = new LightsEC(module as ModuleColorChanger, extra_Cost).GetConsume();
+            actualCost = modReturn.Value;
+            return modReturn.Key;
 
-        case "ModuleAnimationGroup":
-          modReturn = new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GetConsume();
-          actualCost = modReturn.Value;
-          return modReturn.Key;
+          case "ModuleAnimationGroup":
+            modReturn = new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GetConsume();
+            actualCost = modReturn.Value;
+            return modReturn.Key;
+        }
+      }
+      catch (Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
       actualCost = extra_Deploy;
       return true;
     }
 
-    public override void OnGUI(bool b)
+    public virtual void Update_UI(bool isEnabled)
     {
-      switch (type)
+      try
       {
-        case "ModuleDataTransmitter":
-          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).GUI_Update(b);
-          break;
+        switch (type)
+        {
+          case "ModuleWheelDeployment":
+            new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).GUI_Update(isEnabled);
+            break;
 
-        case "Antenna":
-          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).GUI_Update(b);
-          break;
+          case "ModuleColorChanger":
+            new LightsEC(module as ModuleColorChanger, extra_Cost).GUI_Update(isEnabled);
+            break;
 
-        case "ModuleWheelDeployment":
-          new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).GUI_Update(b);
-          break;
-
-        case "ModuleColorChanger":
-          new LightsEC(module as ModuleColorChanger, extra_Cost).GUI_Update(b);
-          break;
-
-        case "ModuleAnimationGroup":
-          new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GUI_Update(b);
-          break;
+          case "ModuleAnimationGroup":
+            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GUI_Update(isEnabled);
+            break;
+        }
+      }
+      catch (Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
     }
 
-    public override void FixModule(bool b)
+    public virtual void FixModule(bool isEnabled)
     {
-      switch (type)
+      try
       {
-        case "ModuleDataTransmitter":
-          new AntennaEC(module as ModuleDataTransmitter, extra_Cost, extra_Deploy, antennaPower).FixModule(b);
-          break;
+        switch (type)
+        {
+          case "ModuleWheelDeployment":
+            new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).FixModule(isEnabled);
+            break;
 
-        case "Antenna":
-          new AntennaEC(module as Antenna, extra_Cost, extra_Deploy).FixModule(b);
-          break;
+          case "ModuleAnimateGeneric":
+            new LightsEC(module as ModuleAnimateGeneric, extra_Cost).FixModule(isEnabled);
+            break;
 
-        case "ModuleWheelDeployment":
-          new LandingGearEC(module as ModuleWheelDeployment, extra_Deploy).FixModule(b);
-          break;
+          case "ModuleColorChanger":
+            new LightsEC(module as ModuleColorChanger, extra_Cost).FixModule(isEnabled);
+            break;
 
-        case "ModuleAnimateGeneric":
-          new LightsEC(module as ModuleAnimateGeneric, extra_Cost).FixModule(b);
-          break;
-
-        case "ModuleColorChanger":
-          new LightsEC(module as ModuleColorChanger, extra_Cost).FixModule(b);
-          break;
-
-        case "ModuleAnimationGroup":
-          new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).FixModule(b);
-          break;
+          case "ModuleAnimationGroup":
+            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).FixModule(isEnabled);
+            break;
+        }
+      }
+      catch (Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
       }
     }
 
     // Some modules need to constantly update UI
-    public void Constant_OnGUI(bool b)
+    public virtual void Constant_OnGUI(bool isEnabled)
     {
-      switch (type)
+      try
       {
-        case "ModuleAnimateGeneric":
-          new LightsEC(module as ModuleAnimateGeneric, extra_Cost).GUI_Update(b);
-          break;
+        switch (type)
+        {
+          case "ModuleAnimateGeneric":
+            new LightsEC(module as ModuleAnimateGeneric, extra_Cost).GUI_Update(isEnabled);
+            break;
+        }
+      }
+      catch (Exception e)
+      {
+        Lib.Error("'{0}': {1}", part.partInfo.title, e.Message);
+      }
+    }
+
+    public void ToggleActions(PartModule partModule, bool value)
+    {
+      Lib.Debug("Part '{0}'.'{1}', setting actions to {2}", partModule.part.partInfo.title, partModule.moduleName, value ? "ON" : "OFF");
+      foreach (BaseAction ac in partModule.Actions)
+      {
+        ac.active = value;
       }
     }
   }
