@@ -3,8 +3,8 @@ using System.IO;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
+using System.Collections;
 using System.Collections.Generic;
-using CommNet;
 using UnityEngine;
 
 namespace KERBALISM
@@ -22,8 +22,8 @@ namespace KERBALISM
 
     public static void Debug(string message, params object[] param)
     {
-      StackTrace stackTrace = new StackTrace();
 #if DEBUG
+      StackTrace stackTrace = new StackTrace();
       UnityEngine.Debug.Log(string.Format("{0} -> debug: {1}.{2} - {3}", NAME_LOG_PREFIX, stackTrace.GetFrame(1).GetMethod().ReflectedType.Name, stackTrace.GetFrame(1).GetMethod().Name,
                                           string.Format(message, param)));
 #endif
@@ -258,6 +258,16 @@ namespace KERBALISM
     public static int Alternate(int seconds, int elements)
     {
       return ((int)Time.realtimeSinceStartup / seconds) % elements;
+    }
+
+    // Delay
+    public static IEnumerator Delay(float s)
+    {
+#if DEBUG
+      StackTrace stackTrace = new StackTrace();
+      UnityEngine.Debug.Log(string.Format("{0} -> debug: {1}.{2} - '{3}'sec delay has been created.", NAME_LOG_PREFIX, stackTrace.GetFrame(1).GetMethod().ReflectedType.Name, stackTrace.GetFrame(1).GetMethod().Name, s));
+#endif
+      yield return new WaitForSeconds(s);
     }
     #endregion
 

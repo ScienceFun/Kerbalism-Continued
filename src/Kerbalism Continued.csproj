@@ -138,6 +138,7 @@
     <Compile Include="Science\MiniHijacker.cs" />
     <Compile Include="Science\Sample.cs" />
     <Compile Include="Science\Science.cs" />
+    <Compile Include="Signal\AntennaConsumption.cs" />
     <Compile Include="Signal\KAntennaInfo.cs" />
     <Compile Include="Signal\ConnectionInfo.cs" />
     <Compile Include="Signal\Signal.cs" />

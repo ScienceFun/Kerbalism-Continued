@@ -72,6 +72,9 @@ namespace KERBALISM
       else if (hasEnergyChanged != hasEnergy)
       {
         Lib.Debug("Energy state has changed: {0}", hasEnergy);
+        
+        // Wait 1 second before enabled UI.
+        if (hasEnergy) Lib.Delay(1f);
 
         hasEnergyChanged = hasEnergy;
         lastBrokenState = false;
@@ -107,6 +110,9 @@ namespace KERBALISM
       }
       else if (hasFixedEnergyChanged != hasEnergy)
       {
+        // Wait 1 second before start consum EC.
+        if (hasEnergy) Lib.Delay(1f);
+
         hasFixedEnergyChanged = hasEnergy;
         lastFixedBrokenState = false;
         // Update module
