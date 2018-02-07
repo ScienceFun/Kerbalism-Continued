@@ -24,22 +24,65 @@
     // Controllers to know when the animation is playing
     public string targetState = "";
     bool isPlaying;
+    bool isPlayed;
+    bool isFixedPlayed;
 
     [KSPField(guiName = "Status", guiActive = false)]
     string moving = "Moving";
 
     public override void OnStart(StartState state)
     {
+      base.OnStart(state);
       // don't break tutorial scenarios
       if (Lib.DisableScenario(this) || !Lib.IsFlight()) return;
 
       ladder = part.FindModuleImplementing<RetractableLadder>();
+
+      isFixedPlayed = isPlayed = !isPlaying;
+
       // Replace the OnGUI
-      if (ladder != null)
+      ladder.Events["Retract"].guiActive = ladder.Events["Retract"].guiActiveUnfocused = false;
+      ladder.Events["Extend"].guiActive = ladder.Events["Extend"].guiActiveUnfocused = false;
+    }
+
+    public override void OnUpdate()
+    {
+      if (!Lib.IsFlight()) return;
+
+      // get energy from cache
+      resources = ResourceCache.Info(vessel, "ElectricCharge");
+      hasEnergy = resources.amount > double.Epsilon;
+
+      if (!hasEnergy)
       {
-        ladder.Events["Retract"].guiActive = ladder.Events["Retract"].guiActiveUnfocused = false;
-        ladder.Events["Extend"].guiActive = ladder.Events["Extend"].guiActiveUnfocused = false;
+        actualCost = 0;
+        isConsuming = false;
       }
+      else
+      {
+        isConsuming = GetIsConsuming();
+      }
+
+      if(isPlayed != isPlaying)
+      {
+        isPlayed = isPlaying;
+        Update_UI(hasEnergy);
+      }
+    }
+
+    public override void FixedUpdate()
+    {
+      if (!Lib.IsFlight()) return;
+
+      if (isFixedPlayed != isPlaying)
+      {
+        isFixedPlayed = isPlaying;
+        // Update module
+        FixModule(hasEnergy);
+      }
+
+      // If isConsuming
+      if (isConsuming && resources != null) resources.Consume(actualCost * Kerbalism.elapsed_s);
     }
 
     public override bool GetIsConsuming()

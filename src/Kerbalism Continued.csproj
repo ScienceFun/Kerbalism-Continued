@@ -25,7 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>GameData\Kerbalism\</OutputPath>
+    <OutputPath>..\GameData\Kerbalism\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -178,8 +178,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)\..\misc\KSPTools\pdb2mdb.exe" "$(TargetPath)"
-move "$(TargetDir)Kerbalism-Continued.dll.mdb" "$(TargetDir)Debug\"
-move "$(TargetDir)Kerbalism-Continued.pdb" "$(TargetDir)Debug\"
+del "$(TargetDir)Kerbalism-Continued.dll.mdb"
+del "$(TargetDir)Kerbalism-Continued.pdb"
+del /q /S "C:\Temp\Kerbal Space Program\GameData\Kerbalism\*"
+IF "$(ConfigurationName)" EQU "Debug" copy "$(TargetDir)Kerbalism-Continued.dll" "$(TargetDir)Debug\Kerbalism-Continued_Debug.dll.debug"
 xcopy /b/v/y/s "$(TargetDir)*" "C:\Temp\Kerbal Space Program\GameData\Kerbalism"</PostBuildEvent>
   </PropertyGroup>
 </Project>

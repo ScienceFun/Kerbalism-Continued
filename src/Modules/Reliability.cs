@@ -5,7 +5,12 @@ namespace KERBALISM
 {
   public sealed class Reliability : PartModule, ISpecifics, IModuleInfo, IPartCostModifier, IPartMassModifier
   {
-    [KSPField] public string type;                                      // component name
+#if DEBUG
+    [KSPField(guiName = "Type", guiUnits = "", guiActive = true, guiFormat = "")]
+#else
+    [KSPField]
+#endif
+    public string type;                                                 // component name
     [KSPField] public double mtbf   = 21600000.0;                       // mean time between failures, in seconds
     [KSPField] public string repair = string.Empty;                     // repair crew specs
     [KSPField] public string title  = string.Empty;                     // short description of component
@@ -21,12 +26,6 @@ namespace KERBALISM
 
     [KSPField(guiActive = false, guiName = "_")] public string Status;  // show component status
 
-
-#if DEBUG
-    [KSPField(guiName = "Type", guiUnits = "", guiActive = true, guiFormat = "")]
-    string vType;
-#endif
-
     List<PartModule> modules;                                           // components cache
     CrewSpecs repair_cs;                                                // crew specs
 
@@ -41,12 +40,8 @@ namespace KERBALISM
       // cache list of modules
       modules = part.FindModulesImplementing<PartModule>().FindAll(k => k.moduleName == type);
 
-#if DEBUG
-      vType = (type == null ? "NULL" : type);
-#endif
-
-            // parse crew specs
-            repair_cs = new CrewSpecs(repair);
+      // parse crew specs
+      repair_cs = new CrewSpecs(repair);
 
       // setup ui
       Fields["Status"].guiName = title;
@@ -428,6 +423,18 @@ namespace KERBALISM
               {
                 part.FindModelComponents<Light>().ForEach(k => k.enabled = false );
               }
+            }
+          }
+          break;
+
+        case "ModuleDataTransmitter":
+        case "Antenna":
+          if(b)
+          {
+            AntennasEC antennasEC = part.FindModuleImplementing<AntennasEC>();
+            if(antennasEC != null)
+            {
+              antennasEC.broken = b;
             }
           }
           break;

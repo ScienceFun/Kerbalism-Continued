@@ -126,8 +126,16 @@ namespace KERBALISM
         {
           if (animator != null)
           {
-            Lib.Debug("Desactiving buttons");
+            Lib.Debug("Desactiving buttons for '{0}' antenna", antenna.part.partInfo.title);
             // Don't allow extending/retracting when has no ec
+
+            string ev = "";
+            foreach (var e in animator.Events)
+            {
+              ev += ("'" + e.name + "',");
+            }
+            ev = ev.Substring(0, ev.Length - 1);
+            Lib.Debug("Available events:" + ev);
             animator.Events["RetractModule"].active = false;
             animator.Events["DeployModule"].active = false;
           }
@@ -180,7 +188,7 @@ namespace KERBALISM
         {
           if (stockAnim != null)
           {
-            Lib.Debug("Desactiving buttons");
+            Lib.Debug("Desactiving buttons for '{0}' antenna", transmitter.part.partInfo.title);
             // Don't allow extending/retracting when has no ec
             stockAnim.Events["Retract"].active = false;
             stockAnim.Events["Extend"].active = false;
@@ -200,10 +208,19 @@ namespace KERBALISM
       double right;
       if (Features.Signal)
       {
-        // Makes antenna valid to AntennaInfo
-        // TODO: review if has a better way to do it
-        antenna.extended = hasEnergy;
-
+        if (animator != null)
+        {
+          if (animator.isDeployed || (Settings.ExtendedAntenna == false))
+          {
+            antenna.extended = hasEnergy;
+          }
+          else antenna.extended = false;
+        }
+        else
+        {
+          // this means that antenna is fixed
+          antenna.extended = hasEnergy;
+        }
         if (animator != null) ToggleActions(animator, hasEnergy);
       }
       else if (Features.KCommNet)
@@ -268,45 +285,29 @@ namespace KERBALISM
 
       // don't break tutorial scenarios & do something only in Flight scenario
       if (Lib.DisableScenario(this) || !Lib.IsFlight()) return;
-
-      if (!Features.Signal)
+   
+      if(Features.Signal)
+      {
+        Antenna a = part.FindModuleImplementing<Antenna>();
+        if (antennaPower == 0 && a != null) antennaPower = a.dist;
+      }
+      else
       {
         ModuleDataTransmitter transmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
         if (transmitter != null) antennaPower = new AntennaEC(part.FindModuleImplementing<ModuleDataTransmitter>(), extra_Cost, extra_Deploy, antennaPower).Init(antennaPower);
       }
+
       // verify if is using custom animation for CommNet
       customAnim = part.FindModuleImplementing<ModuleAnimateGeneric>();
     }
 
-    public override void Update()
+    public override void OnUpdate()
     {
       if (!Lib.IsFlight()) return;
 
       // get energy from cache
       resources = ResourceCache.Info(vessel, "ElectricCharge");
-      hasEnergy = ResourceCache.Info(vessel, "ElectricCharge").amount > double.Epsilon;
-
-      // Update UI only if hasEnergy has changed or if is broken state has changed
-      if (broken)
-      {
-        if (broken != lastBrokenState)
-        {
-          Update_UI(!broken);
-        }
-      }
-      else if (hasEnergyChanged != hasEnergy)
-      {
-        Lib.Debug("Energy state has changed: {0}", hasEnergy);
-        hasEnergyChanged = hasEnergy;
-        // Update UI
-        Update_UI(hasEnergy);
-      }
-      // Constantly Update UI for special modules
-      if (customAnim != null)
-      {
-        if (broken) Constant_OnGUI(!broken);
-        else Constant_OnGUI(hasEnergy);
-      }
+      hasEnergy = resources.amount > double.Epsilon;
 
       if (!hasEnergy || broken)
       {
@@ -316,6 +317,31 @@ namespace KERBALISM
       else
       {
         isConsuming = GetIsConsuming();
+      }
+
+      // Update UI only if hasEnergy has changed or if is broken state has changed
+      if (broken)
+      {
+        if (broken != lastBrokenState)
+        {
+          lastBrokenState = broken;
+          Update_UI(!broken);
+        }
+      }
+      else if (hasEnergyChanged != hasEnergy)
+      {
+        Lib.Debug("Energy state has changed: {0}", hasEnergy);
+
+        hasEnergyChanged = hasEnergy;
+        lastBrokenState = false;
+        // Update UI
+        Update_UI(hasEnergy);
+      }
+      // Constantly Update UI for special modules
+      if (customAnim != null)
+      {
+        if (broken) Constant_OnGUI(!broken);
+        else Constant_OnGUI(hasEnergy);
       }
     }
 

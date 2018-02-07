@@ -10,8 +10,9 @@ namespace KERBALISM
     [KSPField] public double extra_Cost = 0;            // extra energy cost to keep the part active
     [KSPField] public double extra_Deploy = 0;          // extra eergy cost to do a deploy(animation)
 
-    [KSPField(isPersistant = false)] public bool broken;// true if broken
+    [KSPField(isPersistant = true, guiName = "IsBroken", guiUnits = "", guiActive = false, guiFormat = "")] public bool broken;// true if broken
     public bool lastBrokenState;                        // broken state has changed since last update?
+    public bool lastFixedBrokenState;                   // broken state has changed since last fixed update?
 
     [KSPField(guiName = "EC Usage", guiUnits = "/s", guiActive = false, guiFormat = "F3")]
     public double actualCost = 0;                       // Energy Consume
@@ -34,35 +35,46 @@ namespace KERBALISM
       // cache list of modules
       module = part.FindModulesImplementing<PartModule>().FindLast(k => k.moduleName == type);
 
+      // get energy from cache
+      resources = ResourceCache.Info(vessel, "ElectricCharge");
+      hasEnergy = resources.amount > double.Epsilon;
+
+      Lib.Debug("Executing OnStart");
       // Force the update to run at least once
       lastBrokenState = !broken;
       hasEnergyChanged = !hasEnergy;
       hasFixedEnergyChanged = !hasEnergy;
 
-      // setup UI
       Fields["actualCost"].guiActive = true;
+#if DEBUG
+      // setup UI
+      Fields["broken"].guiActive = true;
+#endif
     }
 
-    public virtual void Update()
+    public override void OnUpdate()
     {
       if (!Lib.IsFlight()) return;
 
       // get energy from cache
       resources = ResourceCache.Info(vessel, "ElectricCharge");
-      hasEnergy = ResourceCache.Info(vessel, "ElectricCharge").amount > double.Epsilon;
+      hasEnergy = resources.amount > double.Epsilon;
 
       // Update UI only if hasEnergy has changed or if is broken state has changed
       if (broken)
       {
-        if(broken != lastBrokenState)
+        if (broken != lastBrokenState)
         {
+          lastBrokenState = broken;
           Update_UI(!broken);
         }
       }
       else if (hasEnergyChanged != hasEnergy)
       {
         Lib.Debug("Energy state has changed: {0}", hasEnergy);
+
         hasEnergyChanged = hasEnergy;
+        lastBrokenState = false;
         // Update UI
         Update_UI(hasEnergy);
       }
@@ -85,26 +97,24 @@ namespace KERBALISM
     {
       if (!Lib.IsFlight()) return;
 
-      if(broken) 
+      if (broken)
       {
-        if (broken != lastBrokenState)
+        if (broken != lastFixedBrokenState)
         {
-          lastBrokenState = broken;
+          lastFixedBrokenState = broken;
           FixModule(!broken);
         }
       }
-      else if (hasEnergyChanged != hasEnergy)
+      else if (hasFixedEnergyChanged != hasEnergy)
       {
         hasFixedEnergyChanged = hasEnergy;
+        lastFixedBrokenState = false;
         // Update module
         FixModule(hasEnergy);
       }
 
-      // If has energy and isConsuming
-      if (isConsuming)
-      {
-        if (resources != null) resources.Consume(actualCost * Kerbalism.elapsed_s);
-      }
+      // If isConsuming
+      if (isConsuming && resources != null) resources.Consume(actualCost * Kerbalism.elapsed_s);
     }
 
     public virtual bool GetIsConsuming()

@@ -24,14 +24,12 @@ namespace KERBALISM
     ScreenMessage progress_msg;
 
 #if DEBUG
-    [KSPField(guiName = "Energy Cost", guiUnits = "", guiActive = true, guiFormat = "")]
+    [KSPField(guiName = "EC to Transmit", guiUnits = "", guiActive = true, guiFormat = "")]
     string ecCost;
     [KSPField(guiName = "Bandwidth", guiUnits = "", guiActive = true, guiFormat = "")]
     string Rate;
     [KSPField(guiName = "Antenna Power", guiUnits = "", guiActive = true, guiFormat = "")]
     string power;
-    [KSPField(guiName = "Antenna Power", guiUnits = "", guiActive = true, guiFormat = "")]
-    string power2;
 #endif
 
     public override void OnStart(StartState state)
@@ -55,7 +53,6 @@ namespace KERBALISM
         ecCost = cost.ToString() + "/s";
         Rate = Lib.HumanReadableDataRate(rate);
         power = Lib.HumanReadableRange(dist);
-        power2 = string.Format("{0:n0}", dist);
 #endif
         // get animator module, if any
         var anim = part.FindModuleImplementing<ModuleAnimationGroup>();
@@ -66,7 +63,7 @@ namespace KERBALISM
           //   leading to spurious signal loss for 1 tick on prelaunch
           extended = anim.isDeployed;
 
-          // allow extending/retracting even when vessel is not controllable
+          // allow extending/retracting
           anim.Events["DeployModule"].guiActiveUncommand = Settings.UnlinkedControl == UnlinkedCtrl.full;   //  "true" has been changed
           anim.Events["RetractModule"].guiActiveUncommand = Settings.UnlinkedControl == UnlinkedCtrl.full;  //  "true" has been changed
         }
