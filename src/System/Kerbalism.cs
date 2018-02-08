@@ -62,7 +62,7 @@ namespace KERBALISM
       }
 
       // force CommNet OFF or ON depending of signal
-      HighLogic.fetch.currentGame.Parameters.Difficulty.EnableCommNet = Features.KCommNet;
+      Features.KCommNet = HighLogic.fetch.currentGame.Parameters.Difficulty.EnableCommNet &= !Features.Signal;
     }
 
     public override void OnSave(ConfigNode node)

@@ -11,7 +11,7 @@ namespace KERBALISM
       Lib.Verbose("version " + Lib.Version());
 
       // parse settings
-      Settings.parse();
+      Settings.Parse();
 
       // parse profile
       Profile.Parse();

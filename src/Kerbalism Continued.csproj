@@ -98,7 +98,7 @@
     <Compile Include="Deploy\ECDeviceBase.cs" />
     <Compile Include="Deploy\Devices\Antennas.cs" />
     <Compile Include="Deploy\Devices\Ladder.cs" />
-    <Compile Include="Deploy\Devices\ScienceDeploy.cs" />
+    <Compile Include="Deploy\Devices\Science.cs" />
     <Compile Include="EVA.cs" />
     <Compile Include="External\RemoteTech.cs" />
     <Compile Include="External\SCANsat.cs" />
