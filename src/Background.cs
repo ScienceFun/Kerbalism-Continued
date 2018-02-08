@@ -127,7 +127,6 @@ namespace KERBALISM {
             case Module_Type.FissionGenerator:      ProcessFissionGenerator(v, p, m, module_prefab, ec, elapsed_s);                             break;
             case Module_Type.RadioisotopeGenerator: ProcessRadioisotopeGenerator(v, p, m, module_prefab, ec, elapsed_s);                        break;
             case Module_Type.CryoTank:              ProcessCryoTank(v, p, m, module_prefab, resources, elapsed_s);                              break;
-            //case Module_Type.AntennaDeploy:         AntennaDeploy.BackgroundUpdate(v, p, m, vi, ec, elapsed_s);                                 break;
           }
         }
       }
@@ -541,6 +540,10 @@ namespace KERBALISM {
 
       // get fuel name
       string fuel_name = Lib.ReflectionValue<string>(simple_boiloff, "FuelName");
+
+      // if fuel_name is null, it will cause error
+      if(string.IsNullOrEmpty(fuel_name)) Lib.Error("Fuel_Name isNull", string.IsNullOrEmpty(fuel_name) ? "isNull" : fuel_name);
+      else Lib.Error("Fuel_Name: {0}", fuel_name);
 
       // get resource handlers
       Resource_Info ec = resources.Info(v, "ElectricCharge");

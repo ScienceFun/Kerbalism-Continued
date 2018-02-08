@@ -359,6 +359,11 @@ namespace KERBALISM
     // return a resource handler
     public Resource_Info Info(Vessel v, string resource_name)
     {
+      if (resource_name == null)
+      {
+        Lib.Error("resouce_name is Null");
+      }
+
       // try to get existing entry if any
       if (resources.TryGetValue(resource_name, out Resource_Info res)) return res;
 
