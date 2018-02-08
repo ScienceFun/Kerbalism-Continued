@@ -55,7 +55,7 @@
         p.SetContent("supply", string.Empty, tooltip);
         p.SetIcon(vd.cfg_supply ? Icons.toggle_green : Icons.toggle_red, tooltip, () => p.Toggle(ref vd.cfg_supply));
       }
-      if (Features.Signal || Features.KCommNet)
+      if (Features.Signal || Features.KCommNet || RemoteTech.Enabled())
       {
         tooltip = "Receive a message when signal is lost or obtained";
         p.SetContent("signal", string.Empty, tooltip);
