@@ -12,7 +12,7 @@ namespace KERBALISM
   public static class Lib
   {
     #region UTILS ----------------------------------------------------------------
-    public static readonly string NAME_LOG_PREFIX = "[Kerbalism-Continued] ";
+    public static readonly string NAME_LOG_PREFIX = "[Kerbalism-Continued]";
 
     // write a message to the log 
     public static void Verbose(string message, params object[] param)

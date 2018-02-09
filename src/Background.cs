@@ -542,8 +542,22 @@ namespace KERBALISM {
       string fuel_name = Lib.ReflectionValue<string>(simple_boiloff, "FuelName");
 
       // if fuel_name is null, it will cause error
-      if(string.IsNullOrEmpty(fuel_name)) Lib.Error("Fuel_Name isNull", string.IsNullOrEmpty(fuel_name) ? "isNull" : fuel_name);
-      else Lib.Error("Fuel_Name: {0}", fuel_name);
+      if (string.IsNullOrEmpty(fuel_name))
+      {
+        Lib.Error("Fuel_Name isNull");
+        if(simple_boiloff == null)
+        {
+          Lib.Error("PartModule: Simple_boiloff isNull");
+        }
+        else
+        {
+          Lib.Debug("Erro to process: '{0}' part", simple_boiloff.part.partInfo.title);
+          Lib.Debug("Erro to process: '{0}' ProtoPart", p.partInfo.title);
+          Lib.Debug("Erro to process: '{0}' part", simple_boiloff.part.partInfo.title);
+        }
+        // Do not process CryoTank
+        return;
+      }
 
       // get resource handlers
       Resource_Info ec = resources.Info(v, "ElectricCharge");
