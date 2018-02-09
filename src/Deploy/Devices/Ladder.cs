@@ -25,7 +25,6 @@
     public string targetState = "";
     bool isPlaying;
     bool isPlayed;
-    bool isFixedPlayed;
 
     [KSPField(guiName = "Status", guiActive = false)]
     string moving = "Moving";
@@ -38,7 +37,7 @@
 
       ladder = part.FindModuleImplementing<RetractableLadder>();
 
-      isFixedPlayed = isPlayed = !isPlaying;
+      isPlayed = !isPlaying;
 
       // Replace the OnGUI
       ladder.Events["Retract"].guiActive = ladder.Events["Retract"].guiActiveUnfocused = false;
@@ -74,9 +73,8 @@
     {
       if (!Lib.IsFlight()) return;
 
-      if (isFixedPlayed != isPlaying)
+      if (hasEnergyChanged != hasEnergy)
       {
-        isFixedPlayed = isPlaying;
         // Update module
         FixModule(hasEnergy);
       }
@@ -91,10 +89,12 @@
       if (targetState == ladder.StateName)
       {
         isPlaying = false;
-        return false;
+        actualCost = 0;
       }
-
-      actualCost = extra_Deploy;
+      else
+      {
+        actualCost = extra_Deploy;
+      }
       return isPlaying;
     }
 

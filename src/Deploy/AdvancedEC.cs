@@ -54,7 +54,7 @@ namespace KERBALISM
 
     public override void OnUpdate()
     {
-      if (!Lib.IsFlight()) return;
+      if (!Lib.IsFlight() || module == null) return;
 
       // get energy from cache
       resources = ResourceCache.Info(vessel, "ElectricCharge");
@@ -98,7 +98,7 @@ namespace KERBALISM
 
     public virtual void FixedUpdate()
     {
-      if (!Lib.IsFlight()) return;
+      if (!Lib.IsFlight() || module == null) return;
 
       if (broken)
       {
@@ -166,10 +166,6 @@ namespace KERBALISM
           case "ModuleColorChanger":
             new LightsEC(module as ModuleColorChanger, extra_Cost).GUI_Update(isEnabled);
             break;
-
-          case "ModuleAnimationGroup":
-            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GUI_Update(isEnabled);
-            break;
         }
       }
       catch (Exception e)
@@ -216,6 +212,10 @@ namespace KERBALISM
         {
           case "ModuleAnimateGeneric":
             new LightsEC(module as ModuleAnimateGeneric, extra_Cost).GUI_Update(isEnabled);
+            break;
+
+          case "ModuleAnimationGroup":
+            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GUI_Update(isEnabled);
             break;
         }
       }

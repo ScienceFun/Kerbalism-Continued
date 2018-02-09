@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace KERBALISM
 {
@@ -303,7 +302,7 @@ namespace KERBALISM
 
     public override void OnUpdate()
     {
-      if (!Lib.IsFlight()) return;
+      if (!Lib.IsFlight() || module == null) return;
 
       // get energy from cache
       resources = ResourceCache.Info(vessel, "ElectricCharge");
