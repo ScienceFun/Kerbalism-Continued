@@ -32,6 +32,7 @@ namespace KERBALISM
       // don't break tutorial scenarios & do something only in Flight scenario
       if (Lib.DisableScenario(this) || !Lib.IsFlight()) return;
 
+      Lib.Debug("Executing OnStart");
       // cache list of modules
       module = part.FindModulesImplementing<PartModule>().FindLast(k => k.moduleName == type);
 
@@ -39,15 +40,14 @@ namespace KERBALISM
       resources = ResourceCache.Info(vessel, "ElectricCharge");
       hasEnergy = resources.amount > double.Epsilon;
 
-      Lib.Debug("Executing OnStart");
       // Force the update to run at least once
       lastBrokenState = !broken;
       hasEnergyChanged = !hasEnergy;
       hasFixedEnergyChanged = !hasEnergy;
 
-      Fields["actualCost"].guiActive = true;
 #if DEBUG
       // setup UI
+      Fields["actualCost"].guiActive = true;
       Fields["broken"].guiActive = true;
 #endif
     }
@@ -140,7 +140,7 @@ namespace KERBALISM
             return modReturn.Key;
 
           case "ModuleAnimationGroup":
-            modReturn = new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GetConsume();
+            modReturn = new AnimationGroupEC(module as ModuleAnimationGroup, extra_Cost, extra_Deploy).GetConsume();
             actualCost = modReturn.Value;
             return modReturn.Key;
         }
@@ -193,7 +193,7 @@ namespace KERBALISM
             break;
 
           case "ModuleAnimationGroup":
-            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).FixModule(isEnabled);
+            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Cost, extra_Deploy).FixModule(isEnabled);
             break;
         }
       }
@@ -215,7 +215,7 @@ namespace KERBALISM
             break;
 
           case "ModuleAnimationGroup":
-            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Deploy).GUI_Update(isEnabled);
+            new AnimationGroupEC(module as ModuleAnimationGroup, extra_Cost, extra_Deploy).GUI_Update(isEnabled);
             break;
         }
       }

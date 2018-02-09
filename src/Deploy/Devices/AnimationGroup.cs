@@ -2,7 +2,7 @@
 {
   public class AnimationGroupEC : ECDeviceBase
   {
-    public AnimationGroupEC(ModuleAnimationGroup module, double extra_Deploy)
+    public AnimationGroupEC(ModuleAnimationGroup module,double extra_Cost, double extra_Deploy)
     {
       this.module = module;
       this.extra_Deploy = extra_Deploy;
@@ -26,10 +26,8 @@
 
     public override void GUI_Update(bool hasEnergy)
     {
-      module.Events["RetractModule"].guiActive = module.isDeployed && hasEnergy;
-      module.Events["RetractModule"].guiActiveUnfocused = module.isDeployed && hasEnergy;
-      module.Events["DeployModule"].guiActive = !module.isDeployed && hasEnergy;
-      module.Events["DeployModule"].guiActiveUnfocused = !module.isDeployed && hasEnergy;
+      module.Events["RetractModule"].guiActiveUnfocused = module.Events["RetractModule"].guiActive = module.isDeployed && hasEnergy;
+      module.Events["DeployModule"].guiActiveUnfocused = module.Events["DeployModule"].guiActive = !module.isDeployed && hasEnergy;
     }
 
     public override void FixModule(bool hasEnergy)
