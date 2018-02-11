@@ -52,6 +52,13 @@
       resources = ResourceCache.Info(vessel, "ElectricCharge");
       hasEnergy = resources.amount > double.Epsilon;
 
+      if (isPlayed != isPlaying || hasEnergyChanged != hasEnergy)
+      {
+        isPlayed = isPlaying;
+        hasEnergyChanged = hasEnergy;
+        Update_UI(hasEnergy);
+      }
+
       if (!hasEnergy)
       {
         actualCost = 0;
@@ -61,26 +68,6 @@
       {
         isConsuming = GetIsConsuming();
       }
-
-      if(isPlayed != isPlaying)
-      {
-        isPlayed = isPlaying;
-        Update_UI(hasEnergy);
-      }
-    }
-
-    public override void FixedUpdate()
-    {
-      if (!Lib.IsFlight()) return;
-
-      if (hasEnergyChanged != hasEnergy)
-      {
-        // Update module
-        FixModule(hasEnergy);
-      }
-
-      // If isConsuming
-      if (isConsuming && resources != null) resources.Consume(actualCost * Kerbalism.elapsed_s);
     }
 
     public override bool GetIsConsuming()
