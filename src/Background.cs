@@ -539,7 +539,7 @@ namespace KERBALISM {
       // however, it also does simulate the ec consumption that way, so we have to disable the post-facto simulation
 
       // As far as I know, Simple_boiloff consumes fuel and EC only if the fuel is on the Fuel List (previously added in Game Load)
-      // The test that I did, I was able to enable to "Enable Cooling" only when fuel was "LqdHydrogen".
+      // The test that I did, I was able to enable to "Enable Cooling" only when fuel was into List<BoiloffFuel> fuels
 
       // get fuel name: FuelName in Simple_Boiloff is always NULL, this Get doesn't make sense, but I will leave here.
       string fuel_name = Lib.ReflectionValue<string>(simple_boiloff, "FuelName");
