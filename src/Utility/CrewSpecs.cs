@@ -40,16 +40,18 @@ namespace KERBALISM
     // return true if the crew of specified vessel satisfy the specs
     public bool Check(Vessel v)
     {
-      return Check(Lib.CrewList(v));
+      return Check(Lib.CrewList(v), out int qtty);
     }
 
     // return true if the specified crew satisfy the specs
-    public bool Check(List<ProtoCrewMember> crew)
+    public bool Check(List<ProtoCrewMember> crew, out int qtty)
     {
-      for(int i=0; i < crew.Count; ++i)
+      qtty = 0;
+      for (int i=0; i < crew.Count; ++i)
       {
-        if (Check(crew[i])) return true;
+        if (Check(crew[i])) qtty++;
       }
+      if (qtty > 0) return true;
       return false;
     }
 
