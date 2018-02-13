@@ -408,7 +408,6 @@ namespace KERBALISM
       }
     }
 
-    // Some modules need to constantly update UI
     public override void Constant_OnGUI(bool isEnabled)
     {
       try

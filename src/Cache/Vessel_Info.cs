@@ -97,7 +97,7 @@ namespace KERBALISM
       poisoning = Habitat.Poisoning(v);
       shielding = Habitat.Shielding(v);
       living_space = Habitat.Living_Space(v);
-      comforts = new Comforts(v, landed, crew_count > 1, true); // TODO: replace 'true' for connection.linked
+      comforts = new Comforts(v, landed, crew_count > 1, connection.linked);
 
       // data about greenhouses
       greenhouses = Greenhouse.Greenhouses(v);
