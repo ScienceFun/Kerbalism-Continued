@@ -94,7 +94,7 @@
     <Compile Include="Deploy\AdvancedEC.cs" />
     <Compile Include="Deploy\Devices\AnimationGroup.cs" />
     <Compile Include="Deploy\Devices\LandingGear.cs" />
-    <Compile Include="Deploy\Devices\Lights.cs" />
+    <Compile Include="Deploy\Devices\ModuleAnimateGeneric.cs" />
     <Compile Include="Deploy\ECDeviceBase.cs" />
     <Compile Include="Deploy\Devices\Antennas.cs" />
     <Compile Include="Deploy\Devices\Ladder.cs" />

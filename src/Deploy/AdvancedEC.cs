@@ -135,7 +135,12 @@ namespace KERBALISM
             return modReturn.Key;
 
           case "ModuleColorChanger":
-            modReturn = new LightsEC(module as ModuleColorChanger, extra_Cost).GetConsume();
+            modReturn = new ModuleAnimateGenericEC(module as ModuleColorChanger, extra_Cost).GetConsume();
+            actualCost = modReturn.Value;
+            return modReturn.Key;
+
+          case "ModuleAnimateGeneric":
+            modReturn = new ModuleAnimateGenericEC(module as ModuleAnimateGeneric, extra_Cost).GetConsume();
             actualCost = modReturn.Value;
             return modReturn.Key;
 
@@ -164,7 +169,7 @@ namespace KERBALISM
             break;
 
           case "ModuleColorChanger":
-            new LightsEC(module as ModuleColorChanger, extra_Cost).GUI_Update(isEnabled);
+            new ModuleAnimateGenericEC(module as ModuleColorChanger, extra_Cost).GUI_Update(isEnabled);
             break;
         }
       }
@@ -185,11 +190,11 @@ namespace KERBALISM
             break;
 
           case "ModuleAnimateGeneric":
-            new LightsEC(module as ModuleAnimateGeneric, extra_Cost).FixModule(isEnabled);
+            new ModuleAnimateGenericEC(module as ModuleAnimateGeneric, extra_Cost).FixModule(isEnabled);
             break;
 
           case "ModuleColorChanger":
-            new LightsEC(module as ModuleColorChanger, extra_Cost).FixModule(isEnabled);
+            new ModuleAnimateGenericEC(module as ModuleColorChanger, extra_Cost).FixModule(isEnabled);
             break;
 
           case "ModuleAnimationGroup":
@@ -211,7 +216,7 @@ namespace KERBALISM
         switch (type)
         {
           case "ModuleAnimateGeneric":
-            new LightsEC(module as ModuleAnimateGeneric, extra_Cost).GUI_Update(isEnabled);
+            new ModuleAnimateGenericEC(module as ModuleAnimateGeneric, extra_Cost).GUI_Update(isEnabled);
             break;
 
           case "ModuleAnimationGroup":
