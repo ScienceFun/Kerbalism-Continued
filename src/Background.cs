@@ -27,7 +27,7 @@ namespace KERBALISM {
       FissionGenerator,
       RadioisotopeGenerator,
       CryoTank,
-      AntennaDeploy,
+      AdvancedEC,
       Unknown
     }
 
@@ -60,8 +60,8 @@ namespace KERBALISM {
         case "FissionGenerator":             return Module_Type.FissionGenerator;
         case "ModuleRadioisotopeGenerator":  return Module_Type.RadioisotopeGenerator;
         case "ModuleCryoTank":               return Module_Type.CryoTank;
-        case "ModuleDataTransmitter":        return Module_Type.AntennaDeploy;
-        case "Antenna":                      return Module_Type.AntennaDeploy;
+        case "AdvancedEC":
+        case "AntennasEC":                   return Module_Type.AdvancedEC;
       }
       return Module_Type.Unknown;
     }
@@ -127,6 +127,7 @@ namespace KERBALISM {
             case Module_Type.FissionGenerator:      ProcessFissionGenerator(v, p, m, module_prefab, ec, elapsed_s);                             break;
             case Module_Type.RadioisotopeGenerator: ProcessRadioisotopeGenerator(v, p, m, module_prefab, ec, elapsed_s);                        break;
             case Module_Type.CryoTank:              ProcessCryoTank(v, p, m, module_prefab, resources, elapsed_s);                              break;
+            case Module_Type.AdvancedEC:            AdvancedEC.BackgroundUpdate(v, p, m, module_prefab as AdvancedEC, ec, elapsed_s);           break;
           }
         }
       }

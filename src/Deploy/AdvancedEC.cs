@@ -10,11 +10,12 @@ namespace KERBALISM
     [KSPField] public double extra_Cost = 0;            // extra energy cost to keep the part active
     [KSPField] public double extra_Deploy = 0;          // extra eergy cost to do a deploy(animation)
 
-    [KSPField(isPersistant = true, guiName = "IsBroken", guiUnits = "", guiActive = false, guiFormat = "")] public bool broken;// true if broken
+    [KSPField(isPersistant = true, guiName = "IsBroken", guiUnits = "", guiFormat = "")] 
+    public bool broken;                                 // is it broken
     public bool lastBrokenState;                        // broken state has changed since last update?
     public bool lastFixedBrokenState;                   // broken state has changed since last fixed update?
 
-    [KSPField(guiName = "EC Usage", guiUnits = "/s", guiActive = false, guiFormat = "F3")]
+    [KSPField(guiName = "EC Usage", guiUnits = "/s", guiFormat = "F3")]
     public double actualCost = 0;                       // Energy Consume
 
     public bool hasEnergy;                              // Check if vessel has energy, otherwise will disable animations and functions
@@ -208,7 +209,7 @@ namespace KERBALISM
       }
     }
 
-    // Some modules need to constantly update UI
+    // Some modules need to update the UI constantly
     public virtual void Constant_OnGUI(bool isEnabled)
     {
       try
@@ -237,6 +238,11 @@ namespace KERBALISM
       {
         ac.active = value;
       }
+    }
+
+    public static void BackgroundUpdate(Vessel v, ProtoPartSnapshot p, ProtoPartModuleSnapshot m, AdvancedEC advancedEC, Resource_Info ec, double elapsed_s)
+    {
+      if (advancedEC.isConsuming) ec.Consume(advancedEC.extra_Cost * elapsed_s);
     }
   }
 }
