@@ -20,9 +20,9 @@
       {
         if (animateGeneric != null)
         {
-          if (animateGeneric.animSpeed > 0)
+          if (animateGeneric.animSpeed > 0 || animateGeneric.aniState == ModuleAnimateGeneric.animationStates.MOVING)
           {
-            actualCost = extra_Cost;
+              actualCost = extra_Cost;
             return true;
           }
         }
@@ -56,12 +56,12 @@
     {
       if (animateGeneric != null)
       {
-        if (animateGeneric.animSpeed > 0) animateGeneric.Toggle();
+        if (animateGeneric.animSpeed > 0 && !hasEnergy) animateGeneric.Toggle();
         ToggleActions(animateGeneric, hasEnergy);
       }
       else if (colorChanger != null)
       {
-        if (colorChanger.animState) colorChanger.ToggleEvent();
+        if (colorChanger.animState && !hasEnergy) colorChanger.ToggleEvent();
         ToggleActions(colorChanger, hasEnergy);
       }
     }
