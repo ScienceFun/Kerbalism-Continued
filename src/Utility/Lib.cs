@@ -490,31 +490,31 @@ namespace KERBALISM
     // pretty-print pressure (value is in kPa)
     public static string HumanReadablePressure(double v)
     {
-      return Lib.BuildString(v.ToString("F1"), " kPa");
+      return BuildString(v.ToString("F1"), " kPa");
     }
 
     // pretty-print volume (value is in m^3)
     public static string HumanReadableVolume(double v)
     {
-      return Lib.BuildString(v.ToString("F2"), " m³");
+      return BuildString(v.ToString("F2"), " m³");
     }
 
     // pretty-print surface (value is in m^2)
     public static string HumanReadableSurface(double v)
     {
-      return Lib.BuildString(v.ToString("F2"), " m²");
+      return BuildString(v.ToString("F2"), " m²");
     }
 
     // pretty-print mass
     public static string HumanReadableMass(double v)
     {
-      return Lib.BuildString(v.ToString("F3"), " t");
+      return BuildString(v.ToString("F3"), " t");
     }
 
     // pretty-print cost
     public static string HumanReadableCost(double v)
     {
-      return Lib.BuildString(v.ToString("F0"), " $");
+      return BuildString(v.ToString("F0"), " $");
     }
 
     // format a value, or return 'none'
@@ -544,19 +544,19 @@ namespace KERBALISM
     // - rate: data rate in Mb/s
     public static string HumanReadableDataRate(double rate)
     {
-      return rate < 0.000001 ? "none" : Lib.BuildString(HumanReadableDataSize(rate), "/s");
+      return rate < 0.000001 ? "none" : BuildString(HumanReadableDataSize(rate), "/s");
     }
 
     // format science credits
     public static string HumanReadableScience(double value)
     {
-      return Lib.BuildString("<color=cyan>", value.ToString("F1"), " CREDITS</color>");
+      return BuildString("<color=cyan>", value.ToString("F1"), " CREDITS</color>");
     }
 
     // format shielding capability
     public static string HumanReadableShielding(double v)
     {
-      return v <= double.Epsilon ? "none" : Lib.BuildString((20.0 * v / Settings.ShieldingEfficiency).ToString("F2"), " mm Pb");
+      return v <= double.Epsilon ? "none" : BuildString((20.0 * v / Settings.ShieldingEfficiency).ToString("F2"), " mm Pb");
     }
 
     #endregion
