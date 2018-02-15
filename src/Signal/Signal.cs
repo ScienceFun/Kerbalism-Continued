@@ -149,7 +149,7 @@ namespace KERBALISM
     public static void Update(Vessel v, Vessel_Info vi, VesselData vd, double elapsed_s)
     {
       // do nothing if signal mechanic is disabled
-      if (!Features.Signal && !Features.KCommNet) return;
+      if (!Features.Signal && !Features.KCommNet && !RemoteTech.Enabled()) return;
 
       // get connection info
       ConnectionInfo conn = vi.connection;
@@ -286,7 +286,7 @@ namespace KERBALISM
         : new ConnectionInfo(LinkStatus.no_link);
       }
       // if CommNet is enabled
-      else if (Features.KCommNet)
+      else if (HighLogic.fetch.currentGame.Parameters.Difficulty.EnableCommNet)
       {
         return v.connection != null && v.connection.IsConnected
         ? new ConnectionInfo(LinkStatus.direct_link, ext_rate * v.connection.SignalStrength, ext_cost)

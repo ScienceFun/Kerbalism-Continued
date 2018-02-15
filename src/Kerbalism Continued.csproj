@@ -25,7 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>GameData\Kerbalism\</OutputPath>
+    <OutputPath>..\GameData\Kerbalism\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -92,14 +92,13 @@
     <Compile Include="Database\UIData.cs" />
     <Compile Include="Database\VesselData.cs" />
     <Compile Include="Deploy\AdvancedEC.cs" />
-    <Compile Include="Deploy\DeployBase.cs" />
-    <Compile Include="Deploy\ECDevice.cs" />
+    <Compile Include="Deploy\Devices\AnimationGroup.cs" />
+    <Compile Include="Deploy\Devices\LandingGear.cs" />
+    <Compile Include="Deploy\Devices\ModuleAnimateGeneric.cs" />
+    <Compile Include="Deploy\ECDeviceBase.cs" />
     <Compile Include="Deploy\Devices\Antennas.cs" />
-    <Compile Include="Deploy\DrillDeploy.cs" />
-    <Compile Include="Deploy\LadderDeploy.cs" />
-    <Compile Include="Deploy\LandingGearDeploy.cs" />
-    <Compile Include="Deploy\LightsDeploy.cs" />
-    <Compile Include="Deploy\ScienceDeploy.cs" />
+    <Compile Include="Deploy\Devices\Ladder.cs" />
+    <Compile Include="Deploy\Devices\Science.cs" />
     <Compile Include="EVA.cs" />
     <Compile Include="External\RemoteTech.cs" />
     <Compile Include="External\SCANsat.cs" />
@@ -139,6 +138,7 @@
     <Compile Include="Science\MiniHijacker.cs" />
     <Compile Include="Science\Sample.cs" />
     <Compile Include="Science\Science.cs" />
+    <Compile Include="Signal\AntennaConsumption.cs" />
     <Compile Include="Signal\KAntennaInfo.cs" />
     <Compile Include="Signal\ConnectionInfo.cs" />
     <Compile Include="Signal\Signal.cs" />
@@ -179,7 +179,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)\..\misc\KSPTools\pdb2mdb.exe" "$(TargetPath)"
-move "$(TargetDir)Kerbalism-Continued.dll.mdb" "$(TargetDir)Debug\"
+del "$(TargetDir)Kerbalism-Continued.dll.mdb"
+del "$(TargetDir)Kerbalism-Continued.pdb"
+del /q /S "C:\Temp\Kerbal Space Program\GameData\Kerbalism\*"
+IF "$(ConfigurationName)" EQU "Debug" copy "$(TargetDir)Kerbalism-Continued.dll" "$(TargetDir)Debug\Kerbalism-Continued_Debug.dll.debug"
 xcopy /b/v/y/s "$(TargetDir)*" "C:\Temp\Kerbal Space Program\GameData\Kerbalism"</PostBuildEvent>
   </PropertyGroup>
 </Project>

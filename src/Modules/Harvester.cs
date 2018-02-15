@@ -80,8 +80,9 @@ namespace KERBALISM
     {
       if (Lib.IsEditor()) return;
 
-      // TODO: Change review
-      if (deployed && running && issue.Length == 0 && ResourceCache.Info(part.vessel, "ElectricCharge").amount > double.Epsilon)
+      if (ResourceCache.Info(vessel, "ElectricCharge").amount <= double.Epsilon && running) Events["Toggle"].Invoke();
+
+      if (deployed && running && issue.Length == 0)
       {
         Resource_Recipe recipe = new Resource_Recipe();
         recipe.Input("ElectricCharge", ec_rate * Kerbalism.elapsed_s);

@@ -211,7 +211,7 @@ namespace KERBALISM
       if (Features.Reliability) Indicator_Reliability(p, v, vi);
 
       // signal indicator
-      if (Features.Signal || Features.KCommNet) Indicator_Signal(p, v, vi);
+      if (Features.Signal || Features.KCommNet || RemoteTech.Enabled()) Indicator_Signal(p, v, vi);
 
       // done
       return true;

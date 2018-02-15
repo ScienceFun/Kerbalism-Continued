@@ -35,7 +35,7 @@ namespace KERBALISM
 
       foreach (var p in rules)
       {
-        p.Value.save(rules_node.AddNode(DB.To_Safe_Key(p.Key)));
+        p.Value.Save(rules_node.AddNode(DB.To_Safe_Key(p.Key)));
       }
     }
 

@@ -3,8 +3,8 @@ using System.IO;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
+using System.Collections;
 using System.Collections.Generic;
-using CommNet;
 using UnityEngine;
 
 namespace KERBALISM
@@ -12,7 +12,7 @@ namespace KERBALISM
   public static class Lib
   {
     #region UTILS ----------------------------------------------------------------
-    public static readonly string NAME_LOG_PREFIX = "[Kerbalism-Continued] ";
+    public static readonly string NAME_LOG_PREFIX = "[Kerbalism-Continued]";
 
     // write a message to the log 
     public static void Verbose(string message, params object[] param)
@@ -22,8 +22,8 @@ namespace KERBALISM
 
     public static void Debug(string message, params object[] param)
     {
-      StackTrace stackTrace = new StackTrace();
 #if DEBUG
+      StackTrace stackTrace = new StackTrace();
       UnityEngine.Debug.Log(string.Format("{0} -> debug: {1}.{2} - {3}", NAME_LOG_PREFIX, stackTrace.GetFrame(1).GetMethod().ReflectedType.Name, stackTrace.GetFrame(1).GetMethod().Name,
                                           string.Format(message, param)));
 #endif
@@ -259,6 +259,16 @@ namespace KERBALISM
     {
       return ((int)Time.realtimeSinceStartup / seconds) % elements;
     }
+
+    // Delay
+    public static IEnumerator Delay(float s)
+    {
+#if DEBUG
+      StackTrace stackTrace = new StackTrace();
+      UnityEngine.Debug.Log(string.Format("{0} -> debug: {1}.{2} - '{3}'sec delay has been created.", NAME_LOG_PREFIX, stackTrace.GetFrame(1).GetMethod().ReflectedType.Name, stackTrace.GetFrame(1).GetMethod().Name, s));
+#endif
+      yield return new WaitForSeconds(s);
+    }
     #endregion
 
     #region REFLECTION -----------------------------------------------------------
@@ -480,31 +490,31 @@ namespace KERBALISM
     // pretty-print pressure (value is in kPa)
     public static string HumanReadablePressure(double v)
     {
-      return Lib.BuildString(v.ToString("F1"), " kPa");
+      return BuildString(v.ToString("F1"), " kPa");
     }
 
     // pretty-print volume (value is in m^3)
     public static string HumanReadableVolume(double v)
     {
-      return Lib.BuildString(v.ToString("F2"), " m³");
+      return BuildString(v.ToString("F2"), " m³");
     }
 
     // pretty-print surface (value is in m^2)
     public static string HumanReadableSurface(double v)
     {
-      return Lib.BuildString(v.ToString("F2"), " m²");
+      return BuildString(v.ToString("F2"), " m²");
     }
 
     // pretty-print mass
     public static string HumanReadableMass(double v)
     {
-      return Lib.BuildString(v.ToString("F3"), " t");
+      return BuildString(v.ToString("F3"), " t");
     }
 
     // pretty-print cost
     public static string HumanReadableCost(double v)
     {
-      return Lib.BuildString(v.ToString("F0"), " $");
+      return BuildString(v.ToString("F0"), " $");
     }
 
     // format a value, or return 'none'
@@ -534,19 +544,19 @@ namespace KERBALISM
     // - rate: data rate in Mb/s
     public static string HumanReadableDataRate(double rate)
     {
-      return rate < 0.000001 ? "none" : Lib.BuildString(HumanReadableDataSize(rate), "/s");
+      return rate < 0.000001 ? "none" : BuildString(HumanReadableDataSize(rate), "/s");
     }
 
     // format science credits
     public static string HumanReadableScience(double value)
     {
-      return Lib.BuildString("<color=cyan>", value.ToString("F1"), " CREDITS</color>");
+      return BuildString("<color=cyan>", value.ToString("F1"), " CREDITS</color>");
     }
 
     // format shielding capability
     public static string HumanReadableShielding(double v)
     {
-      return v <= double.Epsilon ? "none" : Lib.BuildString((20.0 * v / Settings.ShieldingEfficiency).ToString("F2"), " mm Pb");
+      return v <= double.Epsilon ? "none" : BuildString((20.0 * v / Settings.ShieldingEfficiency).ToString("F2"), " mm Pb");
     }
 
     #endregion

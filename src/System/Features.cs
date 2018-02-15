@@ -9,7 +9,7 @@ namespace KERBALISM
       // set user-specified features
       Reliability   = Settings.Reliability;
       Signal        = Settings.Signal;
-      KCommNet      = Settings.KCommNet && !Settings.Signal;
+      KCommNet      = Settings.KCommNet;
       AdvancedEC    = Settings.AdvancedEC;
       Science       = Settings.Science;
       SpaceWeather  = Settings.SpaceWeather;
@@ -18,7 +18,7 @@ namespace KERBALISM
       // force-disable some features based on mods detected
       Reliability &= !Lib.HasAssembly("TestFlight");
       Signal      &= !Lib.HasAssembly("RemoteTech");
-      KCommNet    &= !Signal;
+      KCommNet    &= !Signal && !Lib.HasAssembly("RemoteTech");
 
       // detect all modifiers in use by current profile
       HashSet<string> modifiers = new HashSet<string>();

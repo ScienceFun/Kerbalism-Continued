@@ -13,6 +13,8 @@ namespace KERBALISM
     CrewSpecs researcher_cs;                              // crew specs for the researcher
     string status = string.Empty;                         // string to show next to the ui button
 
+    [KSPField(isPersistant = true, guiName = "analysis_rateAVG", guiUnits = "", guiActive = true, guiFormat = "")] public double analysis_rateAVG = 0;
+
     public override void OnStart(StartState state)
     {
       // don't break tutorial scenarios
@@ -45,8 +47,9 @@ namespace KERBALISM
       // if enabled
       if (running)
       {
+        int qtty = 0, crewlvl = 0;
         // if a researcher is not required, or the researcher is present
-        if (!researcher_cs || researcher_cs.Check(part.protoModuleCrew))
+        if (!researcher_cs || researcher_cs.Check(part.protoModuleCrew, out qtty, out crewlvl))
         {
           // get next sample to analyze
           string sample_filename = Next_sample(vessel);
@@ -62,8 +65,12 @@ namespace KERBALISM
             // - comparing against amount in previous simulation step
             if (ec.amount > double.Epsilon)
             {
+              analysis_rateAVG = analysis_rate;
+              if (researcher_cs) analysis_rateAVG *= qtty * crewlvl;
               // analyze the sample
-              Analyze(vessel, sample_filename, analysis_rate * Kerbalism.elapsed_s);
+              Analyze(vessel, sample_filename, analysis_rateAVG * Kerbalism.elapsed_s);
+
+              //Analyze(vessel, sample_filename, analysis_rate * Kerbalism.elapsed_s);
 
               // update status
               status = Science.Experiment(sample_filename).name;
@@ -104,7 +111,8 @@ namespace KERBALISM
       {
         // if a researcher is not required, or the researcher is present
         CrewSpecs researcher_cs = new CrewSpecs(lab.researcher);
-        if (!researcher_cs || researcher_cs.Check(p.protoModuleCrew))
+        int qtty = 0, crewlvl = 0;
+        if (!researcher_cs || researcher_cs.Check(p.protoModuleCrew, out qtty, out crewlvl))
         {
           // get sample to analyze
           string sample_filename = Next_sample(v);
@@ -119,8 +127,10 @@ namespace KERBALISM
             // - comparing against amount in previous simulation step
             if (ec.amount > double.Epsilon)
             {
+              double analysis_rateAVG = lab.analysis_rate;
+              if (researcher_cs) analysis_rateAVG *= qtty * crewlvl;
               // analyze the sample
-              Analyze(v, sample_filename, lab.analysis_rate * elapsed_s);
+              Analyze(v, sample_filename, analysis_rateAVG * elapsed_s);
             }
           }
         }

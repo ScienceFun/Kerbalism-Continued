@@ -5,7 +5,12 @@ namespace KERBALISM
 {
   public sealed class Reliability : PartModule, ISpecifics, IModuleInfo, IPartCostModifier, IPartMassModifier
   {
-    [KSPField(isPersistant = true)] public string type;                 // component name
+#if DEBUG
+    [KSPField(guiName = "Type", guiUnits = "", guiActive = true, guiFormat = "")]
+#else
+    [KSPField]
+#endif
+    public string type;                                                 // component name
     [KSPField] public double mtbf   = 21600000.0;                       // mean time between failures, in seconds
     [KSPField] public string repair = string.Empty;                     // repair crew specs
     [KSPField] public string title  = string.Empty;                     // short description of component
@@ -418,6 +423,18 @@ namespace KERBALISM
               {
                 part.FindModelComponents<Light>().ForEach(k => k.enabled = false );
               }
+            }
+          }
+          break;
+
+        case "ModuleDataTransmitter":
+        case "Antenna":
+          if(b)
+          {
+            AntennasEC antennasEC = part.FindModuleImplementing<AntennasEC>();
+            if(antennasEC != null)
+            {
+              antennasEC.broken = b;
             }
           }
           break;

@@ -16,7 +16,7 @@
       time_since = Lib.ConfigValue(node, "time_since", 0.0);
     }
 
-    public void save(ConfigNode node)
+    public void Save(ConfigNode node)
     {
       node.AddValue("problem",    problem   );
       node.AddValue("message",    message   );

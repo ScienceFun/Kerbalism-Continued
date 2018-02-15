@@ -27,7 +27,7 @@ namespace KERBALISM {
       FissionGenerator,
       RadioisotopeGenerator,
       CryoTank,
-      AntennaDeploy,
+      AdvancedEC,
       Unknown
     }
 
@@ -60,8 +60,8 @@ namespace KERBALISM {
         case "FissionGenerator":             return Module_Type.FissionGenerator;
         case "ModuleRadioisotopeGenerator":  return Module_Type.RadioisotopeGenerator;
         case "ModuleCryoTank":               return Module_Type.CryoTank;
-        case "ModuleDataTransmitter":        return Module_Type.AntennaDeploy;
-        case "Antenna":                      return Module_Type.AntennaDeploy;
+        case "AdvancedEC":
+        case "AntennasEC":                   return Module_Type.AdvancedEC;
       }
       return Module_Type.Unknown;
     }
@@ -127,7 +127,7 @@ namespace KERBALISM {
             case Module_Type.FissionGenerator:      ProcessFissionGenerator(v, p, m, module_prefab, ec, elapsed_s);                             break;
             case Module_Type.RadioisotopeGenerator: ProcessRadioisotopeGenerator(v, p, m, module_prefab, ec, elapsed_s);                        break;
             case Module_Type.CryoTank:              ProcessCryoTank(v, p, m, module_prefab, resources, elapsed_s);                              break;
-            //case Module_Type.AntennaDeploy:         AntennaDeploy.BackgroundUpdate(v, p, m, vi, ec, elapsed_s);                                 break;
+            case Module_Type.AdvancedEC:            AdvancedEC.BackgroundUpdate(v, p, m, module_prefab as AdvancedEC, ec, elapsed_s);           break;
           }
         }
       }
@@ -533,49 +533,114 @@ namespace KERBALISM {
       double remaining = Math.Pow(2.0, (-mission_time) / half_life);
       ec.Produce(power * remaining * elapsed_s);
     }
-    
+
     static void ProcessCryoTank(Vessel v, ProtoPartSnapshot p, ProtoPartModuleSnapshot m, PartModule simple_boiloff, Vessel_Resources resources, double elapsed_s)
     {
       // note: cryotank module already does a post-facto simulation of background boiling, and we could use that for the boiling
       // however, it also does simulate the ec consumption that way, so we have to disable the post-facto simulation
 
-      // get fuel name
+      // As far as I know, Simple_boiloff consumes fuel and EC only if the fuel is on the Fuel List (previously added in Game Load)
+      // The test that I did, I was able to enable to "Enable Cooling" only when fuel was into List<BoiloffFuel> fuels
+
+      // get fuel name: FuelName in Simple_Boiloff is always NULL, this Get doesn't make sense, but I will leave here.
       string fuel_name = Lib.ReflectionValue<string>(simple_boiloff, "FuelName");
 
       // get resource handlers
       Resource_Info ec = resources.Info(v, "ElectricCharge");
-      Resource_Info fuel = resources.Info(v, fuel_name);
 
-      // if there is some fuel
-      // note: comparing against amount in previous simulation step
-      if (fuel.amount > double.Epsilon)
+      // if fuel_name is null as expected, this would cause error
+      if (string.IsNullOrEmpty(fuel_name))
       {
-        // get capacity in the part
-        double capacity = p.resources.Find(k => k.resourceName == fuel_name).maxAmount;
+        // Take name from fuel list inside part
+        System.Collections.IList fuelList = Lib.ReflectionValue<System.Collections.IList>(simple_boiloff, "fuels");
 
-        // if cooling is enabled and there was enough ec
-        // note: comparing against amount in previous simulation step
-        if (Lib.Proto.GetBool(m, "CoolingEnabled") && ec.amount > double.Epsilon)
+        foreach (var item in fuelList)
         {
-          // get cooling ec cost per 1000 units of fuel, per-second
-          double cooling_cost = Lib.ReflectionValue<float>(simple_boiloff, "CoolingCost");
+          fuel_name = (string)item.GetType().GetField("fuelName").GetValue(item);
+          // if fuel_name still null, do anything
+          if (fuel_name == null) continue;
 
-          // consume ec
-          ec.Consume(cooling_cost * capacity * 0.001 * elapsed_s);
-        }
-        // if there wasn't ec, or if cooling is disabled
-        else
-        {
-          // get boiloff rate in proportion to fuel amount, per-second
-          double boiloff_rate = Lib.ReflectionValue<float>(simple_boiloff, "BoiloffRate") * 0.00000277777;
+          Resource_Info fuel = resources.Info(v, fuel_name);
 
-          // let it boil off
-          fuel.Consume(capacity * (1.0 - Math.Pow(1.0 - boiloff_rate, elapsed_s)));
+          // if there is some fuel
+          // note: comparing against amount in previous simulation step
+          if (fuel.amount > double.Epsilon)
+          {
+            // Try find resource "fuel_name" into PartResources
+            ProtoPartResourceSnapshot protoPartResource = p.resources.Find(k => k.resourceName == fuel_name);
+
+            // If part doesn't have the fuel, do anything.
+            if (protoPartResource == null) continue;
+
+            // get capacity in the part
+            double capacity = protoPartResource.maxAmount;
+
+            // if cooling is enabled and there was enough ec
+            // note: comparing against amount in previous simulation step
+            if (Lib.Proto.GetBool(m, "CoolingEnabled") && ec.amount > double.Epsilon)
+            {
+              // get cooling ec cost per 1000 units of fuel, per-second
+              double cooling_cost = Lib.ReflectionValue<float>(simple_boiloff, "CoolingCost");
+
+              // consume ec
+              ec.Consume(cooling_cost * capacity * 0.001 * elapsed_s);
+            }
+            // if there wasn't ec, or if cooling is disabled
+            else
+            {
+              // get boiloff rate in proportion to fuel amount, per-second
+              double boiloff_rate = Lib.ReflectionValue<float>(simple_boiloff, "BoiloffRate") * 0.00000277777;
+
+              // let it boil off
+              fuel.Consume(capacity * (1.0 - Math.Pow(1.0 - boiloff_rate, elapsed_s)));
+            }
+          }
+
+          // disable post-facto simulation
+          Lib.Proto.Set(m, "LastUpdateTime", v.missionTime);
         }
       }
+      else
+      {
+        Resource_Info fuel = resources.Info(v, fuel_name);
 
-      // disable post-facto simulation
-      Lib.Proto.Set(m, "LastUpdateTime", v.missionTime);
+        // if there is some fuel
+        // note: comparing against amount in previous simulation step
+        if (fuel.amount > double.Epsilon)
+        {
+          // Try find resource "fuel_name" into PartResources
+          ProtoPartResourceSnapshot protoPartResource = p.resources.Find(k => k.resourceName == fuel_name);
+
+          // If part doesn't have the fuel, do anything.
+          if (protoPartResource == null) return;
+
+          // get capacity in the part
+          double capacity = protoPartResource.maxAmount;
+
+          // if cooling is enabled and there was enough ec
+          // note: comparing against amount in previous simulation step
+          if (Lib.Proto.GetBool(m, "CoolingEnabled") && ec.amount > double.Epsilon)
+          {
+            // get cooling ec cost per 1000 units of fuel, per-second
+            double cooling_cost = Lib.ReflectionValue<float>(simple_boiloff, "CoolingCost");
+
+            // consume ec
+            ec.Consume(cooling_cost * capacity * 0.001 * elapsed_s);
+          }
+          // if there wasn't ec, or if cooling is disabled
+          else
+          {
+            // get boiloff rate in proportion to fuel amount, per-second
+            double boiloff_rate = Lib.ReflectionValue<float>(simple_boiloff, "BoiloffRate") * 0.00000277777;
+
+            // let it boil off
+            fuel.Consume(capacity * (1.0 - Math.Pow(1.0 - boiloff_rate, elapsed_s)));
+          }
+        }
+
+        // disable post-facto simulation
+        Lib.Proto.Set(m, "LastUpdateTime", v.missionTime);
+      }
     }
   }
 }

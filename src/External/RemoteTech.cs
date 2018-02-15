@@ -30,7 +30,7 @@ namespace KERBALISM
       return API != null && (bool)IsConnected.Invoke(null, new Object[]{id});
     }
 
-    // reflection type of SCANUtils static class in SCANsat assembly, if present
+    // reflection type of RemoteTech static class in RemoteTech assembly, if present
     static Type API;
     static System.Reflection.MethodInfo IsEnabled;
     static System.Reflection.MethodInfo IsConnected;

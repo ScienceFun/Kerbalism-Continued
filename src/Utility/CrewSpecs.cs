@@ -46,9 +46,31 @@ namespace KERBALISM
     // return true if the specified crew satisfy the specs
     public bool Check(List<ProtoCrewMember> crew)
     {
-      for(int i=0; i < crew.Count; ++i)
+      for (int i=0; i < crew.Count; ++i)
       {
         if (Check(crew[i])) return true;
+      }
+      return false;
+    }
+
+    // return true if the specified crew satisfy the specs
+    public bool Check(List<ProtoCrewMember> crew, out int crewQTTY, out int crewlvlAVG)
+    {
+      crewQTTY = 0;
+      crewlvlAVG = 0;
+      for (int i = 0; i < crew.Count; ++i)
+      {
+        if (Check(crew[i]))
+        {
+          crewQTTY++;
+          crewlvlAVG += crew[i].experienceLevel;
+        }
+        
+      }
+      if (crewQTTY > 0)
+      {
+        crewlvlAVG /= crewQTTY;
+        return true;
       }
       return false;
     }

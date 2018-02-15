@@ -12,8 +12,8 @@ namespace KERBALISM
   public sealed class Antenna : PartModule, ISpecifics, IAnimatedModule, IScienceDataTransmitter, IContractObjectiveModule
   {
     [KSPField] public KAntennaType type;                  // type of antenna
-    [KSPField] public double cost;                        // cost of transmission in EC/s
-    [KSPField] public double rate;                        // transmission rate at zero distance in Mb/s
+    [KSPField] public double cost = 0;                    // cost of transmission in EC/s (if ecCost = 0, cost = AntennaPower / 50.000.000)
+    [KSPField] public double rate = 0;                    // transmission rate at zero distance in Mb/s (if rate = 0, rate = ecCost * 80)
     [KSPField] public double dist;                        // max transmission distance in meters
 
     [KSPField(isPersistant=true)] public bool extended;   // true if the low-gain antenna can receive data from other vessels
@@ -23,6 +23,15 @@ namespace KERBALISM
     public DataStream stream;
     ScreenMessage progress_msg;
 
+#if DEBUG
+    [KSPField(guiName = "EC to Transmit", guiUnits = "", guiActive = true, guiFormat = "")]
+    string ecCost;
+    [KSPField(guiName = "Bandwidth", guiUnits = "", guiActive = true, guiFormat = "")]
+    string Rate;
+    [KSPField(guiName = "Antenna Power", guiUnits = "", guiActive = true, guiFormat = "")]
+    string power;
+#endif
+
     public override void OnStart(StartState state)
     {
       // don't break tutorial scenarios
@@ -31,12 +40,20 @@ namespace KERBALISM
       // assume extended if there is no animator
       extended |= part.FindModuleImplementing<ModuleAnimationGroup>() == null;
 
+      if (cost == 0) cost = dist / 50000000;
+      if(rate == 0) rate = cost * 0.064;
+
       // create data stream, used if science system is disabled
       stream = new DataStream();
 
       // in flight
       if (Lib.IsFlight())
       {
+#if DEBUG
+        ecCost = cost.ToString() + "/s";
+        Rate = Lib.HumanReadableDataRate(rate);
+        power = Lib.HumanReadableRange(dist);
+#endif
         // get animator module, if any
         var anim = part.FindModuleImplementing<ModuleAnimationGroup>();
         if (anim != null)
@@ -46,7 +63,7 @@ namespace KERBALISM
           //   leading to spurious signal loss for 1 tick on prelaunch
           extended = anim.isDeployed;
 
-          // allow extending/retracting even when vessel is not controllable
+          // allow extending/retracting
           anim.Events["DeployModule"].guiActiveUncommand = Settings.UnlinkedControl == UnlinkedCtrl.full;   //  "true" has been changed
           anim.Events["RetractModule"].guiActiveUncommand = Settings.UnlinkedControl == UnlinkedCtrl.full;  //  "true" has been changed
         }
