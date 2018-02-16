@@ -108,6 +108,7 @@
     <Compile Include="Modules\DataStream.cs" />
     <Compile Include="Modules\Emitter.cs" />
     <Compile Include="Modules\Experiment.cs" />
+    <Compile Include="Modules\GenericConverter.cs" />
     <Compile Include="Modules\GravityRing.cs" />
     <Compile Include="Modules\Greenhouse.cs" />
     <Compile Include="Modules\Habitat.cs" />

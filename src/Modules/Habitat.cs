@@ -28,6 +28,11 @@ namespace KERBALISM
       // calculate habitat external surface
       if (surface <= double.Epsilon) surface = Lib.PartSurface(part);
 
+#if DEBUG
+      Fields["Volume"].guiActive = true;
+      Fields["Surface"].guiActive = true;
+#endif
+
       // set RMB UI status strings
       Volume = Lib.HumanReadableVolume(volume);
       Surface = Lib.HumanReadableSurface(surface);
@@ -240,6 +245,15 @@ namespace KERBALISM
         if (Features.Poisoning) waste.amount = 0.0;
       }
     }
+
+    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Play_true", active = true)]
+    public void Play() { inflate_anim.Play(true, false); }
+
+    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Play_false", active = true)]
+    public void Playf() { inflate_anim.Play(false, false); }
+
+    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Stop", active = true)]
+    public void Stop() { inflate_anim.Stop(); }
 
     [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "_", active = true)]
     public void Toggle()
