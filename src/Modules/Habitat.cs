@@ -14,7 +14,7 @@ namespace KERBALISM
     [KSPField(isPersistant = true)] public int      CrewCapacity;
     [KSPField(isPersistant = true)] private double  perctDeployed = 0;
 
-    [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")] public string Volume;
+    [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")]  public string Volume;
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Surface")] public string Surface;
 
     Animator inflate_anim;
@@ -207,9 +207,7 @@ namespace KERBALISM
       Events["Toggle"].guiName = Lib.StatusToggle("Habitat", status_str);
 
       // if there is an inflate animation, set still animation from pressure
-      //if (animBackwards) inflate_anim.Still(Math.Abs(Lib.Level(part, "Atmosphere", true) - 1));
-      //else inflate_anim.Still(Lib.Level(part, "Atmosphere", true));
-      if (animBackwards) inflate_anim.Still(Math.Abs((perctDeployed/100) - 1));
+      if (animBackwards) inflate_anim.Still(Math.Abs((perctDeployed / 100) - 1));
       else inflate_anim.Still((perctDeployed / 100));
     }
 

@@ -10,7 +10,7 @@
     
     // Add compatibility and revert animation
     [KSPField] public bool  animBackwards;                              // If animation is playing in backwards, this can help to fix
-    [KSPField] public bool  rotateIsTransform;
+    [KSPField] public bool  rotateIsTransform;                          // Rotation is not an animation, but a Transform
     [KSPField] public float SpinRate = 10.0f;                           // Speed of the centrifuge rotation in deg/s
     [KSPField] public float SpinAccelerationRate = 1.0f;                // Rate at which the SpinRate accelerates (deg/s/s)
 
@@ -28,8 +28,8 @@
 
       // get animations
       deploy_anim = new Animator(part, deploy);
-      if(rotateIsTransform) rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
-      else rotate_anim = new Animator(part, rotate);
+      rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
+      rotate_anim = new Animator(part, rotate);
 
       // set animation state / invert animation
       if (animBackwards) deploy_anim.Still(deployed ? 0.0f : 1.0f);
@@ -37,8 +37,8 @@
 
       if (deployed)
       {
-        if(rotateIsTransform) rotate_transf.Play();
-        else rotate_anim.Play(false, true);
+        rotate_transf.Play();
+        rotate_anim.Play(false, true);
       }
 
       // show the deploy toggle if it is deployable
@@ -51,7 +51,7 @@
       Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
 
       // if it is deploying, wait until the animation is over
-      if (deployed && !deploy_anim.Playing() && !rotate_anim.Playing())
+      if (deployed && !deploy_anim.Playing() && !rotate_anim.Playing() && !rotateIsTransform)
       {
         // then start the rotate animation
         rotate_anim.Play(false, true);
@@ -71,6 +71,7 @@
           // - safe to pause multiple times
           Lib.Debug("Pausing rotation");
           rotate_anim.Pause();
+          rotate_transf.Stop();
         }
         // if there is enough ec instead
         else if (!rotate_anim.Playing())

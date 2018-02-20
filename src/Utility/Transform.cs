@@ -24,6 +24,12 @@ namespace KERBALISM
 
       if (transf_name.Length > 0)
       {
+        Lib.Debug("Available transforms");
+        foreach (Transform child in p.transform)
+        {
+          Lib.Debug("Transform: {0}", child.name);
+        }
+
         Lib.Debug("Looking for : {0}", transf_name);
         Transform[] transfArray = p.FindModelTransforms(transf_name);
         if (transfArray.Length > 0)
