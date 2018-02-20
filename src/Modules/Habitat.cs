@@ -4,12 +4,15 @@ namespace KERBALISM
 {
   public sealed class Habitat : PartModule, ISpecifics, IConfigurable
   {
-    [KSPField] public double volume = 0.0;            // habitable volume in m^3, deduced from bounding box if not specified
-    [KSPField] public double surface = 0.0;           // external surface in m^2, deduced from bounding box if not specified
-    [KSPField] public string inflate = string.Empty;  // inflate animation, if any
-    [KSPField] public bool   toggle = true;           // show the enable/disable toggle
+    [KSPField] public double  volume = 0.0;            // habitable volume in m^3, deduced from bounding box if not specified
+    [KSPField] public double  surface = 0.0;           // external surface in m^2, deduced from bounding box if not specified
+    [KSPField] public string  inflate = string.Empty;  // inflate animation, if any
+    [KSPField] public bool    toggle = true;           // show the enable/disable toggle
+    [KSPField] public bool    animBackwards;
 
-    [KSPField(isPersistant = true)] public State state = State.enabled;
+    [KSPField(isPersistant = true)] public State    state = State.enabled;
+    [KSPField(isPersistant = true)] public int      CrewCapacity;
+    [KSPField(isPersistant = true)] private double  perctDeployed = 0;
 
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")] public string Volume;
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Surface")] public string Surface;
@@ -27,11 +30,6 @@ namespace KERBALISM
 
       // calculate habitat external surface
       if (surface <= double.Epsilon) surface = Lib.PartSurface(part);
-
-#if DEBUG
-      Fields["Volume"].guiActive = true;
-      Fields["Surface"].guiActive = true;
-#endif
 
       // set RMB UI status strings
       Volume = Lib.HumanReadableVolume(volume);
@@ -101,16 +99,16 @@ namespace KERBALISM
         double vessel_level = vessel_atmo.level;
         double hab_level = Lib.Level(part, "Atmosphere", true);
 
+        perctDeployed = (hab_atmo.amount / hab_atmo.maxAmount) * 100;
+
         // equalization succeeded if the levels are the same
         // note: this behave correctly in the case the hab is the only enabled one or not
-        if (Math.Abs(vessel_level - hab_level) < 0.01) return State.enabled;
+        //if (Math.Abs(vessel_level - hab_level) < 0.01) return State.enabled;
+        if (perctDeployed == 100) return State.enabled;
 
         // in case vessel pressure is dropping during equalization, it mean that pressure
         // control is not enough so we just enable the hab while not fully equalized
-        if (vessel_atmo.rate < 0.0)
-        {
-          return State.enabled;
-        }
+        //if (vessel_atmo.rate < 0.0) return State.enabled;
 
         // determine equalization speed
         // we deal with the case where a big hab is sucking all atmosphere from the rest of the vessel
@@ -173,6 +171,8 @@ namespace KERBALISM
         double atmo_k = atmo.amount / (atmo.amount + waste.amount);
         double waste_k = waste.amount / (atmo.amount + waste.amount);
 
+        perctDeployed = (atmo.amount / atmo.maxAmount) * 100;
+
         // consume from the part, clamp amount to what's available
         atmo.amount = Math.Max(atmo.amount - rate * atmo_k, 0.0);
         waste.amount = Math.Max(waste.amount - rate * waste_k, 0.0);
@@ -196,17 +196,21 @@ namespace KERBALISM
     {
       // update ui
       string status_str = string.Empty;
-      switch(state)
+      switch (state)
       {
         case State.enabled:     status_str = "enabled"; break;
         case State.disabled:    status_str = "disabled"; break;
-        case State.equalizing:  status_str = inflate.Length == 0 ? "equalizing..." : "inflating..."; break;
-        case State.venting:     status_str = inflate.Length == 0 ? "venting..." : "deflating..."; break;
+        case State.equalizing:  status_str = inflate.Length == 0 ? "equalizing...(" : "inflating...("; break;
+        case State.venting:     status_str = inflate.Length == 0 ? "venting...(" : "deflating...("; break;
       }
+      if (state == State.equalizing || state == State.venting) status_str += (Math.Floor(perctDeployed * 100) / 100).ToString() + "%)";
       Events["Toggle"].guiName = Lib.StatusToggle("Habitat", status_str);
 
       // if there is an inflate animation, set still animation from pressure
-      inflate_anim.Still(Lib.Level(part, "Atmosphere", true));
+      //if (animBackwards) inflate_anim.Still(Math.Abs(Lib.Level(part, "Atmosphere", true) - 1));
+      //else inflate_anim.Still(Lib.Level(part, "Atmosphere", true));
+      if (animBackwards) inflate_anim.Still(Math.Abs((perctDeployed/100) - 1));
+      else inflate_anim.Still((perctDeployed / 100));
     }
 
     public void FixedUpdate()
@@ -215,26 +219,28 @@ namespace KERBALISM
       if (Lib.IsManned(part) && state != State.enabled) state = State.equalizing;
 
       // state machine
-      switch(state)
+      switch (state)
       {
         case State.enabled:
-          Set_Flow(true);
+            Set_Flow(true);
           break;
 
         case State.disabled:
-          Set_Flow(false);
+            Set_Flow(false);
           break;
 
         case State.equalizing:
-          Set_Flow(false);
-          state = Equalize();
+            Set_Flow(true);
+            state = Equalize();
           break;
 
         case State.venting:
-          Set_Flow(false);
-          state = Venting();
+            Set_Flow(false);
+            state = Venting();
           break;
       }
+
+      part.CrewCapacity = perctDeployed == 100 ? CrewCapacity : 0;
 
       // instant pressurization and scrubbing inside breathable atmosphere
       if (!Lib.IsEditor() && Cache.VesselInfo(vessel).breathable && inflate.Length == 0)
@@ -245,15 +251,6 @@ namespace KERBALISM
         if (Features.Poisoning) waste.amount = 0.0;
       }
     }
-
-    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Play_true", active = true)]
-    public void Play() { inflate_anim.Play(true, false); }
-
-    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Play_false", active = true)]
-    public void Playf() { inflate_anim.Play(false, false); }
-
-    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Stop", active = true)]
-    public void Stop() { inflate_anim.Stop(); }
 
     [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "_", active = true)]
     public void Toggle()
@@ -266,12 +263,12 @@ namespace KERBALISM
       }
 
       // state switching
-      switch(state)
+      switch (state)
       {
-        case State.enabled:     state = State.venting;     break;
-        case State.disabled:    state = State.equalizing;  break;
-        case State.equalizing:  state = State.venting;     break;
-        case State.venting:     state = State.equalizing;  break;
+        case State.enabled:     state = State.venting;    break;
+        case State.disabled:    state = State.equalizing; break;
+        case State.equalizing:  state = State.venting;    break;
+        case State.venting:     state = State.equalizing; break;
       }
     }
 

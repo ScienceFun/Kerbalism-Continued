@@ -14,9 +14,19 @@ namespace KERBALISM
 
       if (anim_name.Length > 0)
       {
+#if DEBUG
+        Lib.Debug("Animations for part: {0}", p.partInfo.title);
+        foreach (var a in p.FindModelAnimators())
+        {
+          Lib.Debug("Animation clip.name: {0}", a.clip.name);
+        }
+#endif
+
+        Lib.Debug("Looking for : {0}", anim_name);
         Animation[] animations = p.FindModelAnimators(anim_name);
         if (animations.Length > 0)
         {
+          Lib.Debug("Animation has been found");
           anim = animations[0];
           name = anim_name;
         }

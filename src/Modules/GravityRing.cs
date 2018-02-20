@@ -7,9 +7,18 @@
     [KSPField] public string rotate = string.Empty;                     // a rotate loop animation can be specified
 
     [KSPField(isPersistant = true)] public bool deployed;               // true if deployed
+    
+    // Add compatibility and revert animation
+    [KSPField] public bool  animBackwards;                              // If animation is playing in backwards, this can help to fix
+    [KSPField] public bool  rotateIsTransform;
+    [KSPField] public float SpinRate = 10.0f;                           // Speed of the centrifuge rotation in deg/s
+    [KSPField] public float SpinAccelerationRate = 1.0f;                // Rate at which the SpinRate accelerates (deg/s/s)
 
     Animator deploy_anim;
     Animator rotate_anim;
+
+    // Add compatibility
+    Transformator rotate_transf;
 
     // pseudo-ctor
     public override void OnStart(StartState state)
@@ -19,11 +28,18 @@
 
       // get animations
       deploy_anim = new Animator(part, deploy);
-      rotate_anim = new Animator(part, rotate);
+      if(rotateIsTransform) rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
+      else rotate_anim = new Animator(part, rotate);
 
-      // set animation state
-      deploy_anim.Still(deployed ? 1.0f : 0.0f);
-      if (deployed) rotate_anim.Play(false, true);
+      // set animation state / invert animation
+      if (animBackwards) deploy_anim.Still(deployed ? 0.0f : 1.0f);
+      else deploy_anim.Still(deployed ? 1.0f : 0.0f);
+
+      if (deployed)
+      {
+        if(rotateIsTransform) rotate_transf.Play();
+        else rotate_anim.Play(false, true);
+      }
 
       // show the deploy toggle if it is deployable
       Events["Toggle"].active = deploy.Length > 0;
@@ -40,24 +56,40 @@
         // then start the rotate animation
         rotate_anim.Play(false, true);
       }
+      else if (deployed && !deploy_anim.Playing() && rotateIsTransform)
+      {
+        rotate_transf.Play();
+      }
 
       // in flight, if deployed
-      if (Lib.IsFlight() && deployed)
+      if (Lib.IsFlight() && deployed && !deploy_anim.Playing())
       {
         // if there is no ec
         if (ResourceCache.Info(vessel, "ElectricCharge").amount < 0.01)
         {
           // pause rotate animation
           // - safe to pause multiple times
+          Lib.Debug("Pausing rotation");
           rotate_anim.Pause();
         }
         // if there is enough ec instead
+        else if (!rotate_anim.Playing())
+        {
+          // resume rotate animation
+          // - safe to resume multiple times
+          if (rotate_anim != null) rotate_anim.Play(true, true);
+          if (rotate_transf != null) rotate_transf.Play();
+        }
         else
         {
           // resume rotate animation
           // - safe to resume multiple times
           rotate_anim.Resume(false);
         }
+      }
+      else if (rotateIsTransform)
+      {
+        rotate_transf.Stop();
       }
     }
 
@@ -75,6 +107,8 @@
         // consume ec
         ec.Consume(ec_rate * Kerbalism.elapsed_s);
       }
+
+      if(rotate_transf!= null) rotate_transf.DoSpin();
     }
 
     public static void BackgroundUpdate(Vessel vessel, ProtoPartSnapshot p, ProtoPartModuleSnapshot m, GravityRing ring, Resource_Info ec, double elapsed_s)
@@ -100,7 +134,7 @@
       }
 
       // start deploy animation in the correct direction, if exist
-      deploy_anim.Play(!deployed, false);
+      deploy_anim.Play(deployed, false);
 
       // update ui
       Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
