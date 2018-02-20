@@ -14,6 +14,7 @@ namespace KERBALISM {
       Emitter,
       Harvester,
       Laboratory,
+      Radiator,
       Command,
       Panel,
       Generator,
@@ -35,33 +36,34 @@ namespace KERBALISM {
     {
       switch(module_name)
       {
-        case "Reliability":                  return Module_Type.Reliability;
-        case "Experiment":                   return Module_Type.Experiment;
-        case "Greenhouse":                   return Module_Type.Greenhouse;
-        case "GravityRing":                  return Module_Type.GravityRing;
-        case "Emitter":                      return Module_Type.Emitter;
-        case "Harvester":                    return Module_Type.Harvester;
-        case "Laboratory":                   return Module_Type.Laboratory;
-        case "ModuleCommand":                return Module_Type.Command;
-        case "ModuleDeployableSolarPanel":   return Module_Type.Panel;
-        case "ModuleGenerator":              return Module_Type.Generator;
+        case "Reliability":                   return Module_Type.Reliability;
+        case "Experiment":                    return Module_Type.Experiment;
+        case "Greenhouse":                    return Module_Type.Greenhouse;
+        case "GravityRing":                   return Module_Type.GravityRing;
+        case "Emitter":                       return Module_Type.Emitter;
+        case "Harvester":                     return Module_Type.Harvester;
+        case "Laboratory":                    return Module_Type.Laboratory;
+        case "Radiator":                      return Module_Type.Radiator;
+        case "ModuleCommand":                 return Module_Type.Command;
+        case "ModuleDeployableSolarPanel":    return Module_Type.Panel;
+        case "ModuleGenerator":               return Module_Type.Generator;
         case "ModuleResourceConverter":
         case "ModuleKPBSConverter":
-        case "FissionReactor":               return Module_Type.Converter;
-        case "ModuleResourceHarvester":      return Module_Type.Drill;
-        case "ModuleAsteroidDrill":          return Module_Type.AsteroidDrill;
-        case "ModuleScienceConverter":       return Module_Type.StockLab;
+        case "FissionReactor":                return Module_Type.Converter;
+        case "ModuleResourceHarvester":       return Module_Type.Drill;
+        case "ModuleAsteroidDrill":           return Module_Type.AsteroidDrill;
+        case "ModuleScienceConverter":        return Module_Type.StockLab;
         case "ModuleLight":
         case "ModuleColoredLensLight":
-        case "ModuleMultiPointSurfaceLight": return Module_Type.Light;
+        case "ModuleMultiPointSurfaceLight":  return Module_Type.Light;
         case "SCANsat":
-        case "ModuleSCANresourceScanner":    return Module_Type.Scanner;
-        case "ModuleCurvedSolarPanel":       return Module_Type.CurvedPanel;
-        case "FissionGenerator":             return Module_Type.FissionGenerator;
-        case "ModuleRadioisotopeGenerator":  return Module_Type.RadioisotopeGenerator;
-        case "ModuleCryoTank":               return Module_Type.CryoTank;
-        case "ModuleDataTransmitter":        return Module_Type.AntennaDeploy;
-        case "Antenna":                      return Module_Type.AntennaDeploy;
+        case "ModuleSCANresourceScanner":     return Module_Type.Scanner;
+        case "ModuleCurvedSolarPanel":        return Module_Type.CurvedPanel;
+        case "FissionGenerator":              return Module_Type.FissionGenerator;
+        case "ModuleRadioisotopeGenerator":   return Module_Type.RadioisotopeGenerator;
+        case "ModuleCryoTank":                return Module_Type.CryoTank;
+        case "ModuleDataTransmitter":         return Module_Type.AntennaDeploy;
+        case "Antenna":                       return Module_Type.AntennaDeploy;
       }
       return Module_Type.Unknown;
     }
@@ -114,6 +116,7 @@ namespace KERBALISM {
             case Module_Type.Emitter:               Emitter.BackgroundUpdate(v, p, m, module_prefab as Emitter, ec, elapsed_s);                 break;
             case Module_Type.Harvester:             Harvester.BackgroundUpdate(v, m, module_prefab as Harvester, elapsed_s);                    break;
             case Module_Type.Laboratory:            Laboratory.BackgroundUpdate(v, p, m, module_prefab as Laboratory, ec, elapsed_s);           break;
+            case Module_Type.Radiator:              Radiator.BackgroundUpdate(v, p, m, module_prefab as Radiator, vi, resources, elapsed_s);    break;
             case Module_Type.Command:               ProcessCommand(v, p, m, module_prefab as ModuleCommand, resources, elapsed_s);              break;
             case Module_Type.Panel:                 ProcessPanel(v, p, m, module_prefab as ModuleDeployableSolarPanel, vi, ec, elapsed_s);      break;
             case Module_Type.Generator:             ProcessGenerator(v, p, m, module_prefab as ModuleGenerator, resources, elapsed_s);          break;

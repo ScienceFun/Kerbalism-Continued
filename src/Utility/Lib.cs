@@ -4,8 +4,8 @@ using System.Text;
 using System.Reflection;
 using System.Diagnostics;
 using System.Collections.Generic;
-using CommNet;
 using UnityEngine;
+using System.Globalization;
 
 namespace KERBALISM
 {
@@ -1408,6 +1408,25 @@ namespace KERBALISM
       {
         string s = m.moduleValues.GetValue(name);
         return s ?? def_value;
+      }
+
+      public static Vector3 GetVector3(ProtoPartModuleSnapshot m, string name, Vector3 def_value = default(Vector3))
+      {
+        string s = m.moduleValues.GetValue(name);
+        if (s == null) return def_value;
+
+        string[] sa = s
+            .Substring(s.IndexOf("(") + 1, s.IndexOf(")") - 1)
+            .Split(","[0]);
+        if (sa.Length > 3) return def_value;
+
+        float[] vc = new float[3];
+        for (int i = 0; i < sa.Length; i++)
+        {
+          if (!float.TryParse(sa[i], NumberStyles.Float, CultureInfo.InvariantCulture, out vc[i])) return def_value;
+          if (float.IsNaN(vc[i]) || float.IsInfinity(vc[i])) return def_value;
+        }
+        return new Vector3(vc[0], vc[1], vc[2]);
       }
 
       // set a value in a proto module
