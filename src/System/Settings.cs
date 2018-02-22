@@ -9,7 +9,7 @@
 
   public static class Settings
   {
-    public static void parse()
+    public static void Parse()
     {
       var cfg = Lib.ParseConfig("Kerbalism/Kerbalism");
 
@@ -26,58 +26,64 @@
       Automation              = Lib.ConfigValue(cfg, "Automation",          false);
 
       // temperature
-      SurvivalTemperature     = Lib.ConfigValue(cfg, "SurvivalTemperature", 295.0);
-      SurvivalRange           = Lib.ConfigValue(cfg, "SurvivalRange",       5.0);
+      SurvivalTemperature     = Lib.ConfigValue(cfg, "SurvivalTemperature",   295.0);
+      SurvivalRange           = Lib.ConfigValue(cfg, "SurvivalRange",         25.0);
+      SurvivalTime            = Lib.ConfigValue(cfg, "SurvivalTime",          86400.0);
+      HabSpecificHeat         = Lib.ConfigValue(cfg, "HabSpecificHeat",       100000.0);
+      HabAbsorptivity         = Lib.ConfigValue(cfg, "HabAbsorptivity",       0.15);
+      HabEmissivity           = Lib.ConfigValue(cfg, "HabEmissivity",         0.1);
+      ExposedSurfaceFactor    = Lib.ConfigValue(cfg, "ExposedSurfaceFactor",  0.25);
+      KerbalHeat              = Lib.ConfigValue(cfg, "KerbalHeat",            30.0);
 
       // quality-of-life
-      IdealLivingSpace        = Lib.ConfigValue(cfg, "IdealLivingSpace",    40.0);
-      ComfortFirmGround       = Lib.ConfigValue(cfg, "ComfortFirmGround",   0.4);
-      ComfortExercise         = Lib.ConfigValue(cfg, "ComfortExercise",     0.2);
-      ComfortNotAlone         = Lib.ConfigValue(cfg, "ComfortNotAlone",     0.1);
-      ComfortCallHome         = Lib.ConfigValue(cfg, "ComfortCallHome",     0.1);
-      ComfortPanorama         = Lib.ConfigValue(cfg, "ComfortPanorama",     0.1);
+      IdealLivingSpace        = Lib.ConfigValue(cfg, "IdealLivingSpace",      40.0);
+      ComfortFirmGround       = Lib.ConfigValue(cfg, "ComfortFirmGround",     0.4);
+      ComfortExercise         = Lib.ConfigValue(cfg, "ComfortExercise",       0.2);
+      ComfortNotAlone         = Lib.ConfigValue(cfg, "ComfortNotAlone",       0.1);
+      ComfortCallHome         = Lib.ConfigValue(cfg, "ComfortCallHome",       0.1);
+      ComfortPanorama         = Lib.ConfigValue(cfg, "ComfortPanorama",       0.1);
 
       // pressure
-      PressureFactor          = Lib.ConfigValue(cfg, "PressureFactor",      10.0);
-      PressureThreshold       = Lib.ConfigValue(cfg, "PressureThreshold",   0.9);
+      PressureFactor          = Lib.ConfigValue(cfg, "PressureFactor",        10.0);
+      PressureThreshold       = Lib.ConfigValue(cfg, "PressureThreshold",     0.9);
 
       // poisoning
-      PoisoningFactor         = Lib.ConfigValue(cfg, "PoisoningFactor",     0.0);
-      PoisoningThreshold      = Lib.ConfigValue(cfg, "PoisoningThreshold",  0.02);
+      PoisoningFactor         = Lib.ConfigValue(cfg, "PoisoningFactor",       0.0);
+      PoisoningThreshold      = Lib.ConfigValue(cfg, "PoisoningThreshold",    0.02);
 
       // radiation
-      ShieldingEfficiency     = Lib.ConfigValue(cfg, "ShieldingEfficiency", 0.9);
-      StormRadiation          = Lib.ConfigValue(cfg, "StormRadiation",      5.0) / 3600.0;  // 5.0 rad/h
-      ExternRadiation         = Lib.ConfigValue(cfg, "ExternRadiation",     0.04) / 3600.0; // 0.04 rad/h
+      ShieldingEfficiency     = Lib.ConfigValue(cfg, "ShieldingEfficiency",   0.9);
+      StormRadiation          = Lib.ConfigValue(cfg, "StormRadiation",        5.0) / 3600.0;  // 5.0 rad/h
+      ExternRadiation         = Lib.ConfigValue(cfg, "ExternRadiation",       0.04) / 3600.0; // 0.04 rad/h
 
       // storm
-      StormMinTime            = Lib.ConfigValue(cfg, "StormMinTime",        2160000.0); // 100 days
-      StormMaxTime            = Lib.ConfigValue(cfg, "StormMaxTime",        8640000.0); // 400 days
-      StormDuration           = Lib.ConfigValue(cfg, "StormDuration",       21600.0);   // 1 day
-      StormEjectionSpeed      = Lib.ConfigValue(cfg, "StormEjectionSpeed",  1000000.0); // 0.33% c
+      StormMinTime            = Lib.ConfigValue(cfg, "StormMinTime",          2160000.0); // 100 days
+      StormMaxTime            = Lib.ConfigValue(cfg, "StormMaxTime",          8640000.0); // 400 days
+      StormDuration           = Lib.ConfigValue(cfg, "StormDuration",         21600.0);   // 1 day
+      StormEjectionSpeed      = Lib.ConfigValue(cfg, "StormEjectionSpeed",    1000000.0); // 0.33% c
 
       // signal
-      UnlinkedControl         = Lib.ConfigEnum(cfg, "UnlinkedControl",      UnlinkedCtrl.none);
-      ExtendedAntenna         = Lib.ConfigValue(cfg, "ExtendedAntenna",     true);
+      UnlinkedControl         = Lib.ConfigEnum(cfg, "UnlinkedControl",        UnlinkedCtrl.none);
+      ExtendedAntenna         = Lib.ConfigValue(cfg, "ExtendedAntenna",       true);
 
       // science
-      ScienceDialog           = Lib.ConfigValue(cfg, "ScienceDialog",       true);
+      ScienceDialog           = Lib.ConfigValue(cfg, "ScienceDialog",         true);
 
       // reliability
-      QualityScale            = Lib.ConfigValue(cfg, "QualityScale",        4.0);
-      CriticalChance          = Lib.ConfigValue(cfg, "CriticalChance",      0.25);
-      SafeModeChance          = Lib.ConfigValue(cfg, "SafeModeChance",      0.5);
-      IncentiveRedundancy     = Lib.ConfigValue(cfg, "IncentiveRedundancy", false);
+      QualityScale            = Lib.ConfigValue(cfg, "QualityScale",          4.0);
+      CriticalChance          = Lib.ConfigValue(cfg, "CriticalChance",        0.25);
+      SafeModeChance          = Lib.ConfigValue(cfg, "SafeModeChance",        0.5);
+      IncentiveRedundancy     = Lib.ConfigValue(cfg, "IncentiveRedundancy",   false);
 
       // misc
-      EnforceCoherency        = Lib.ConfigValue(cfg, "EnforceCoherency",    true);
-      TrackingPivot           = Lib.ConfigValue(cfg, "TrackingPivot",       true);
-      HeadLampsCost           = Lib.ConfigValue(cfg, "HeadLampsCost",       0.002);
-      DeathReputation         = Lib.ConfigValue(cfg, "DeathReputation",     100.0f);
-      BreakdownReputation     = Lib.ConfigValue(cfg, "BreakdownReputation", 10.0f);
-      StockMessages           = Lib.ConfigValue(cfg, "StockMessages",       false);
-      MessageLength           = Lib.ConfigValue(cfg, "MessageLength",       4.0f);
-      LowQualityRendering     = Lib.ConfigValue(cfg, "LowQualityRendering", false);
+      EnforceCoherency        = Lib.ConfigValue(cfg, "EnforceCoherency",      true);
+      TrackingPivot           = Lib.ConfigValue(cfg, "TrackingPivot",         true);
+      HeadLampsCost           = Lib.ConfigValue(cfg, "HeadLampsCost",         0.002);
+      DeathReputation         = Lib.ConfigValue(cfg, "DeathReputation",       100.0f);
+      BreakdownReputation     = Lib.ConfigValue(cfg, "BreakdownReputation",   10.0f);
+      StockMessages           = Lib.ConfigValue(cfg, "StockMessages",         false);
+      MessageLength           = Lib.ConfigValue(cfg, "MessageLength",         4.0f);
+      LowQualityRendering     = Lib.ConfigValue(cfg, "LowQualityRendering",   false);
     }
 
     // profile used
@@ -95,6 +101,12 @@
     // temperature
     public static double SurvivalTemperature;       // ideal living temperature
     public static double SurvivalRange;             // sweet spot around survival temperature
+    public static double SurvivalTime;              // time of survival at SurvivalRange limit (s)
+    public static double HabSpecificHeat;           // heat capacity of habitat (J/m^3/K)
+    public static double HabAbsorptivity;           // habitat surface absorptivity factor
+    public static double HabEmissivity;             // habitat surface emissivity factor
+    public static double ExposedSurfaceFactor;      // % of habitat surface exposed to full flux intensity
+    public static double KerbalHeat;                // Kerbal body heat production (W)
 
     // quality-of-life
     public static double IdealLivingSpace;          // ideal living space per-capita in m^3

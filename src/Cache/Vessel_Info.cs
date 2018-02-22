@@ -97,6 +97,8 @@ namespace KERBALISM
       poisoning = Habitat.Poisoning(v);
       shielding = Habitat.Shielding(v);
       living_space = Habitat.Living_Space(v);
+      net_flux = Habitat.Env_Flux(surface, temperature) + Habitat.Kerbal_Flux(crew_count) + Habitat.Atmo_Flux(v.mainBody, v.altitude, surface, temperature, v);
+      hab_temp = Habitat.Hab_Temp(volume, net_flux);
       comforts = new Comforts(v, landed, crew_count > 1, true); // TODO: replace 'true' for connection.linked
 
       // data about greenhouses
@@ -122,6 +124,8 @@ namespace KERBALISM
     public double total_flux;                     // total flux at vessel position
     public double temperature;                    // vessel temperature
     public double temp_diff;                      // difference between external and survival temperature
+    public double net_flux;                       // habitat net thermal flux (W)
+    public double hab_temp;                       // habitat temperature degeneration factor
     public double radiation;                      // environment radiation at vessel position
     public bool magnetosphere;                    // true if vessel is inside a magnetopause (except the heliosphere)
     public bool inner_belt;                       // true if vessel is inside a radiation belt

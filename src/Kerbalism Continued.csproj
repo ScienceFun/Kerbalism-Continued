@@ -146,6 +146,7 @@
     <Compile Include="Signal\Signal.cs" />
     <Compile Include="Sim.cs" />
     <Compile Include="Storm.cs" />
+    <Compile Include="System\API.cs" />
     <Compile Include="System\Callbacks.cs" />
     <Compile Include="System\Features.cs" />
     <Compile Include="System\Kerbalism.cs" />

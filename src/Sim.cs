@@ -334,7 +334,7 @@ namespace KERBALISM
         double atmo_temp = body.GetTemperature(v.altitude);
 
         // mix between our temperature and the stock atmospheric model
-        temp = Lib.Mix(atmo_temp, temp, Lib.Clamp(v.altitude / body.atmosphereDepth, 0.0, 1.0));
+        temp = Lib.Mix(body.GetTemperature(v.altitude), temp, Lib.Clamp(v.altitude / body.atmosphereDepth, 0.0, 1.0));
       }
 
       // finally, return the temperature
@@ -377,7 +377,9 @@ namespace KERBALISM
     public static double TempDiff(double k, CelestialBody body, bool landed)
     {
       if (body.flightGlobalsIndex == FlightGlobals.GetHomeBodyIndex() && landed) return 0.0;
-      return Math.Max(Math.Abs(k - Settings.SurvivalTemperature) - Settings.SurvivalRange, 0.0);
+      return (k - Settings.SurvivalTemperature) > 0 ? 
+        Math.Max(k - Settings.SurvivalTemperature - Settings.SurvivalRange, 0.0) : 
+        Math.Min(k - Settings.SurvivalTemperature + Settings.SurvivalRange, 0.0);
     }
     #endregion
 
