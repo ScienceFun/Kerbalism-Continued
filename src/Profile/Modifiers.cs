@@ -24,12 +24,16 @@ namespace KERBALISM
             k *= vi.net_flux < 0.0 ? Math.Abs(vi.net_flux) : 0.0;
             break;
 
-          case "pos_temp":
-            k *= vi.net_flux > 0.0 ? vi.hab_temp : 0.0;
+          case "temp_diff":
+            k *= Math.Abs(vi.temperature_modifier);
             break;
 
-          case "neg_temp":
-            k *= vi.net_flux < 0.0 ? vi.hab_temp : 0.0;
+          case "need_cooling":
+            k *= vi.climatization_modifier > 0.0 ? vi.climatization_modifier : 0.0;
+            break;
+
+          case "need_heating":
+            k *= vi.climatization_modifier < 0.0 ? Math.Abs(vi.climatization_modifier) : 0.0;
             break;
 
           case "radiation":
@@ -107,12 +111,16 @@ namespace KERBALISM
             k *= va.net_flux < 0.0 ? Math.Abs(va.net_flux) : 0.0;
             break;
 
-          case "pos_temp":
-            k *= va.net_flux > 0.0 ? va.hab_temp : 0.0;
+          case "temp_diff":
+            k *= Math.Abs(va.temperature_modifier);
             break;
 
-          case "neg_temp":
-            k *= va.net_flux < 0.0 ? va.hab_temp : 0.0;
+          case "need_cooling":
+            k *= va.climatization_modifier > 0.0 ? va.climatization_modifier : 0.0;
+            break;
+
+          case "need_heating":
+            k *= va.climatization_modifier < 0.0 ? Math.Abs(va.climatization_modifier) : 0.0;
             break;
 
           case "radiation":

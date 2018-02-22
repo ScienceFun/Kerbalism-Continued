@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace KERBALISM 
 {
@@ -6,13 +8,20 @@ namespace KERBALISM
   {
     [KSPField] public double volume = 0.0;            // habitable volume in m^3, deduced from bounding box if not specified
     [KSPField] public double surface = 0.0;           // external surface in m^2, deduced from bounding box if not specified
+    [KSPField] public double heat_capacity = 0.0;     // habitat stored heat in watts at 295K, deduced from settings value if not specified
     [KSPField] public string inflate = string.Empty;  // inflate animation, if any
     [KSPField] public bool   toggle = true;           // show the enable/disable toggle
 
     [KSPField(isPersistant = true)] public State state = State.enabled;
 
+    // rmb ui status strings
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")] public string Volume;
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Surface")] public string Surface;
+    [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Temperature (K)", guiFormat = "F1")] public double Temperature;
+    [KSPField(guiActive = true, guiActiveEditor = false, guiName = "atmo flux   (W)", guiFormat = "F1")] public double atmoflux;
+    [KSPField(guiActive = true, guiActiveEditor = false, guiName = "env flux    (W)", guiFormat = "F1")] public double envflux;
+    [KSPField(guiActive = true, guiActiveEditor = false, guiName = "kerbal flux (W)", guiFormat = "F1")] public double kerbalflux;
+    [KSPField(guiActive = true, guiActiveEditor = false, guiName = "net flux    (W)", guiFormat = "F1")] public double netflux;
 
     Animator inflate_anim;
 
@@ -45,6 +54,7 @@ namespace KERBALISM
 
     public void Configure(bool enable)
     {
+      Fields["Temperature"].guiActive = enable;
       if (enable)
       {
         // if never set, this is the case if:
@@ -57,6 +67,9 @@ namespace KERBALISM
           // - disabled habitats start with zero atmosphere
           Lib.AddResource(part, "Atmosphere", (state == State.enabled && Features.Pressure) ? volume : 0.0, volume);
           Lib.AddResource(part, "WasteAtmosphere", 0.0, volume);
+
+          // add heat resource to reach ideal temperature
+          Lib.AddResource(part, "HabWatts", heat_capacity, heat_capacity * 2.0);
 
           // add external surface shielding
           Lib.AddResource(part, "Shielding", 0.0, surface);
@@ -73,6 +86,7 @@ namespace KERBALISM
         Lib.RemoveResource(part, "Atmosphere", 0.0, volume);
         Lib.RemoveResource(part, "WasteAtmosphere", 0.0, volume);
         Lib.RemoveResource(part, "Shielding", 0.0, surface);
+        Lib.RemoveResource(part, "HabWatts", 0.0, 0.0);
       }
     }
 
@@ -81,6 +95,7 @@ namespace KERBALISM
       Lib.SetResourceFlow(part, "Atmosphere", b);
       Lib.SetResourceFlow(part, "WasteAtmosphere", b);
       Lib.SetResourceFlow(part, "Shielding", b);
+      Lib.SetResourceFlow(part, "HabWatts", b);
     }
 
     State Equalize()
@@ -206,6 +221,19 @@ namespace KERBALISM
 
     public void FixedUpdate()
     {
+      if (part.Resources.Contains("HabWatts"))
+      {
+        Temperature = (part.Resources["HabWatts"].amount / part.Resources["HabWatts"].maxAmount) * Settings.TemperatureIdeal * 2.0;
+      }
+
+      if (Lib.IsFlight())
+      {
+        atmoflux = Atmo_Flux(vessel, FlightGlobals.currentMainBody, vessel.altitude, Cache.VesselInfo(vessel).surface, Cache.VesselInfo(vessel).env_temperature, Cache.VesselInfo(vessel).hab_temperature);
+        envflux = Env_Flux(Cache.VesselInfo(vessel).surface, Cache.VesselInfo(vessel).env_temperature, Cache.VesselInfo(vessel).hab_temperature);
+        kerbalflux = Kerbal_Flux(vessel.GetCrewCount());
+        netflux = Cache.VesselInfo(vessel).net_flux;
+      }
+
       // if part is manned (even in the editor), force enabled
       if (Lib.IsManned(part) && state != State.enabled) state = State.equalizing;
 
@@ -332,36 +360,57 @@ namespace KERBALISM
       else return "cramped";
     }
 
+    // return habitat temperature in kelvin
+    public static double Hab_Temperature(Vessel v)
+    {
+      return ResourceCache.Info(v, "HabWatts").level * Settings.TemperatureIdeal * 2.0;
+    }
+
+    // return difference between ideal temperature and habitat temperature, minus the threshold
+    public static double Temperature_Modifier(double hab_temperature)
+    {
+      return (hab_temperature - Settings.TemperatureIdeal) > 0 ?
+        Math.Max(hab_temperature - Settings.TemperatureIdeal - Settings.TemperatureThreshold, 0.0) :
+        Math.Min(hab_temperature - Settings.TemperatureIdeal + Settings.TemperatureThreshold, 0.0);
+    }
+
+    // return heating/cooling need modifier minus 1/4 the threshold and smoothed
+    public static double Climatization_Modifier(double hab_temperature)
+    {
+      double threshold = Settings.TemperatureThreshold * 0.25;
+      double tempdiff = hab_temperature - Settings.TemperatureIdeal;
+      return (tempdiff) > 0 ?
+        Math.Min(Math.Max(tempdiff - threshold, 0.0) / threshold, 1.0) :
+        Math.Max(Math.Min(tempdiff + threshold, 0.0) / threshold, -1.0);
+    }
+
     // return net atmospheric related heat flux for the vessel habitat (Watt)
-    public static double Atmo_Flux(CelestialBody mainBody, double altitude, double surface, double env_temperature, Vessel v = null)
+    public static double Atmo_Flux(Vessel v, CelestialBody mainBody, double altitude, double surface, double env_temperature, double hab_temperature)
     {
       // very approximate conductive/convective heat transfer when in atmo (W)
       // Assumption : heat transfer coeficient at 100 kPa is 10 W/m²/K = 0.1 W/m²/K/kPA
       if (mainBody.atmosphere && altitude < mainBody.atmosphereDepth)
       {
-        // when loaded, use the vessel root part skin temperature if there is a signifiant (> 50K) difference with our calculated environnement temperature
-        if (v != null && v.loaded && Math.Abs(v.rootPart.skinTemperature - env_temperature) > 50.0)
+        // when loaded, use hottest habitat part temperature if there is a signifiant (> 50K) difference with our calculated environnement temperature
+        if (v != null && v.loaded)
         {
-          return surface * Clamped_Temp_Diff(Settings.SurvivalTemperature, Settings.SurvivalRange, v.rootPart.skinTemperature) * mainBody.GetPressure(altitude) * 0.1;
+          List<Part> habitat = v.Parts.FindAll(p => p.Modules.Contains<Habitat>());
+          if (habitat.Count > 0)
+          {
+            double loaded_temperature = habitat.Max(p => p.skinTemperature);
+            if (Math.Abs(loaded_temperature - env_temperature) > 50)
+            {
+              return (loaded_temperature - hab_temperature) * surface * mainBody.GetPressure(altitude) * 0.1;
+            }
+          }
         }
-        else
-        {
-          return surface * Clamped_Temp_Diff(Settings.SurvivalTemperature, Settings.SurvivalRange, env_temperature) * mainBody.GetPressure(altitude) * 0.1;
-        }
+        return (env_temperature - hab_temperature) * surface * mainBody.GetPressure(altitude) * 0.1;
       }
       return 0.0;
     }
 
-    // return the temperature difference if the difference is greater than the survival range, else 0.0
-    public static double Clamped_Temp_Diff(double survival_temp, double survival_range, double external_temp)
-    {
-      return (external_temp - survival_temp) > 0.0 ?
-        Math.Max(external_temp - survival_temp - survival_range, 0.0) :
-        Math.Min(external_temp - survival_temp + survival_range, 0.0);
-    }
-
     // return net environnement related heat flux for the vessel habitat (Watt)
-    public static double Env_Flux(double surface, double temperature)
+    public static double Env_Flux(double surface, double temperature, double hab_temperature)
     {
       return
       // incoming flux :
@@ -383,10 +432,10 @@ namespace KERBALISM
         *
         (
           // flux for exposed surface
-          (Math.Pow(Math.Max(temperature, Settings.SurvivalTemperature), 4.0) * Settings.ExposedSurfaceFactor)
+          (Math.Pow(Math.Max(temperature, hab_temperature), 4.0) * Settings.ExposedSurfaceFactor)
           +
           // flux for non-exposed surface
-          (Math.Pow(Settings.SurvivalTemperature, 4.0) * (1.0 - Settings.ExposedSurfaceFactor))
+          (Math.Pow(hab_temperature, 4.0) * (1.0 - Settings.ExposedSurfaceFactor))
         )
       );
     }
@@ -395,17 +444,6 @@ namespace KERBALISM
     public static double Kerbal_Flux(int crew_count)
     {
       return crew_count * Settings.KerbalHeat; // kerbal bodies heat production
-    }
-
-    // return habitat temperature degeneration modifier
-    public static double Hab_Temp(double volume, double net_flux)
-    {
-      // arcane formula to make relation between flux and survival time non linear
-      double modifier = (1.0 / Settings.SurvivalTime) * ((Settings.SurvivalTime / (Math.Abs((Settings.HabSpecificHeat * Settings.SurvivalRange * volume) / net_flux))) / 3.0);
-      // take care of zero/near zero net_flux case :
-      if (double.IsNaN(modifier) || double.IsInfinity(modifier)) return 0.0;
-      // no degeneration if heat flux is very small
-      return modifier < 1.0e-6 ? 0.0 : modifier;
     }
 
     // habitat state

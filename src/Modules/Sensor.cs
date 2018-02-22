@@ -66,7 +66,7 @@ namespace KERBALISM
     {
       switch(type)
       {
-        case "temperature":   return Math.Min(vi.temperature / 11000.0, 1.0);
+        case "temperature":   return Math.Min(vi.env_temperature / 11000.0, 1.0);
         case "radiation":     return Math.Min(vi.radiation * 3600.0 / 11.0, 1.0);
         case "pressure":      return Math.Min(v.mainBody.GetPressure(v.altitude) / Sim.PressureAtSeaLevel() / 11.0, 1.0);
         case "gravioli":      return Math.Min(vi.gravioli, 1.0);
@@ -79,7 +79,7 @@ namespace KERBALISM
     {
       switch(type)
       {
-        case "temperature":   return vi.temperature;
+        case "temperature":   return vi.env_temperature;
         case "radiation":     return vi.radiation;
         case "pressure":      return v.mainBody.GetPressure(v.altitude);;
         case "gravioli":      return vi.gravioli;
@@ -92,7 +92,7 @@ namespace KERBALISM
     {
       switch(type)
       {
-        case "temperature":   return Lib.HumanReadableTemp(vi.temperature);
+        case "temperature":   return Lib.HumanReadableTemp(vi.env_temperature);
         case "radiation":     return Lib.HumanReadableRadiation(vi.radiation);
         case "pressure":      return Lib.HumanReadablePressure(v.mainBody.GetPressure(v.altitude));
         case "gravioli":      return vi.gravioli < 0.33 ? "nothing here" : vi.gravioli < 0.66 ? "almost one" : "WOW!";

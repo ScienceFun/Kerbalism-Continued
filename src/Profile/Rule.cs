@@ -54,7 +54,7 @@ namespace KERBALISM
       Resource_Info res = input.Length > 0 ? resources.Info(v, input) : null;
 
       // determine message variant
-      uint variant = vi.temperature < Settings.SurvivalTemperature ? 0 : 1u;
+      uint variant = vi.env_temperature < Settings.TemperatureThreshold ? 0 : 1u;
 
       // get product of all environment modifiers
       double k = Modifiers.Evaluate(v, vi, resources, modifiers);

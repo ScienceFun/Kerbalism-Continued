@@ -68,8 +68,7 @@ namespace KERBALISM
       landed = Lib.Landed(v);
 
       // temperature at vessel position
-      temperature = Sim.Temperature(v, position, sunlight, atmo_factor, out solar_flux, out albedo_flux, out body_flux, out total_flux);
-      temp_diff = Sim.TempDiff(temperature, v.mainBody, landed);
+      env_temperature = Sim.EnvTemperature(v, position, sunlight, atmo_factor, out solar_flux, out albedo_flux, out body_flux, out total_flux);
 
       // radiation
       radiation = Radiation.Compute(v, position, gamma_transparency, sunlight, out blackout, out magnetosphere, out inner_belt, out outer_belt, out interstellar);
@@ -97,9 +96,11 @@ namespace KERBALISM
       poisoning = Habitat.Poisoning(v);
       shielding = Habitat.Shielding(v);
       living_space = Habitat.Living_Space(v);
-      net_flux = Habitat.Env_Flux(surface, temperature) + Habitat.Kerbal_Flux(crew_count) + Habitat.Atmo_Flux(v.mainBody, v.altitude, surface, temperature, v);
-      hab_temp = Habitat.Hab_Temp(volume, net_flux);
-      comforts = new Comforts(v, landed, crew_count > 1, true); // TODO: replace 'true' for connection.linked
+      hab_temperature = Habitat.Hab_Temperature(v);
+      net_flux = Habitat.Env_Flux(surface, env_temperature, hab_temperature) + Habitat.Kerbal_Flux(crew_count) + Habitat.Atmo_Flux(v, v.mainBody, v.altitude, surface, env_temperature, hab_temperature);
+      temperature_modifier = Habitat.Temperature_Modifier(hab_temperature);
+      climatization_modifier = Habitat.Climatization_Modifier(hab_temperature);
+      comforts = new Comforts(v, landed, crew_count > 1, true);
 
       // data about greenhouses
       greenhouses = Greenhouse.Greenhouses(v);
@@ -122,10 +123,11 @@ namespace KERBALISM
     public double albedo_flux;                    // solar flux reflected from the nearest body
     public double body_flux;                      // infrared radiative flux from the nearest body
     public double total_flux;                     // total flux at vessel position
-    public double temperature;                    // vessel temperature
-    public double temp_diff;                      // difference between external and survival temperature
+    public double env_temperature;                // external temperature at vessel position
+    public double hab_temperature;                // internal temperature of hottest habitat part
     public double net_flux;                       // habitat net thermal flux (W)
-    public double hab_temp;                       // habitat temperature degeneration factor
+    public double temperature_modifier;           // habitat temperature difference, minus the threshold
+    public double climatization_modifier;         // habitat temperature difference, minus 1/4 the threshold
     public double radiation;                      // environment radiation at vessel position
     public bool magnetosphere;                    // true if vessel is inside a magnetopause (except the heliosphere)
     public bool inner_belt;                       // true if vessel is inside a radiation belt

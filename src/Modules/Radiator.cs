@@ -13,27 +13,27 @@ namespace KERBALISM
 
     // config
     [KSPField]
-    public string input_resource = "ElectricCharge"; // resource consumed to make the pump work
+    public string input_resource = "ElectricCharge";  // resource consumed to make the pump work
     [KSPField]
-    public float input_rate_min = 0.005f;            // input per unit of coolant produced at min temperature, per second
+    public float input_rate_min = 0.005f;             // input per unit of coolant produced at min temperature, per second
     [KSPField]
-    public float input_rate_max = 0.500f;            // input per unit of coolant produced at max temperature, per second
+    public float input_rate_max = 0.500f;             // input per unit of coolant produced at max temperature, per second
     [KSPField]
-    public string output_resource = "Coolant";       // name of the coolant output resource  
+    public string output_resource = "Coolant";        // name of the coolant output resource  
     [KSPField]
-    public float temperature_min = 290.0f;           // tweakable minimal coolant temperature
+    public float temperature_min = 290.0f;            // tweakable minimal coolant temperature
     [KSPField]
-    public float temperature_max = 340.0f;           // tweakable maximal coolant temperature
+    public float temperature_max = 340.0f;            // tweakable maximal coolant temperature
     [KSPField]
-    public double emissivity = 1.0;                  // optional factor on emissivity, affect output rate
+    public double emissivity = 1.0;                   // optional factor on emissivity, affect output rate
 
     // persistance/config
     [KSPField(isPersistant = true)]
-    public string radiator_type = string.Empty;  // must be specified for non-deployable radiators, valid values : frontal, radial
+    public string radiator_type = string.Empty;       // must be specified for non-deployable radiators, valid values : frontal, radial
     [KSPField(isPersistant = true)]
-    public double surface = 0.0;                 // surface of a single face of the radiator, autodetected but can be defined in cfg
+    public double surface = 0.0;                      // surface of a single face of the radiator, autodetected but can be defined in cfg
     [KSPField(isPersistant = true)]
-    public Vector3 direction;                    // direction the radiator is facing, autodetected but can be defined in cfg
+    public Vector3 direction;                         // direction the radiator is facing, autodetected but can be defined in cfg
 
     // persistence
     [KSPField(isPersistant = true)]
@@ -47,7 +47,7 @@ namespace KERBALISM
 
     // rmb tweakable
     [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Coolant temperature", guiFormat = "F0")]
-    public float coolant_temperature = -1.0f;       // coolant temperature in K, higher = more efficient
+    public float coolant_temperature = -1.0f;         // coolant temperature in K, higher = more efficient
 
     // other data
     private ModuleActiveRadiator radiator;
@@ -148,14 +148,14 @@ namespace KERBALISM
 
       // calculate net flux (W)
       cooling_rate = GetRadiatorFlux(
-        (vessel.mainBody.position - Lib.VesselPosition(vessel)).normalized, // body_dir
-        vi.sun_dir, // sun_dir
-        GetFacingDirectionLoaded(), // radiator_dir
-        vi.body_flux, // body_flux
-        vi.albedo_flux, // albedo_flux
-        vi.solar_flux, // solar_flux
-        vi.temperature, // env_temperature
-        vessel.mainBody.GetPressure(Math.Max(vessel.altitude, 0.0)), // env_pressure
+        (vessel.mainBody.position - Lib.VesselPosition(vessel)).normalized,   // body_dir
+        vi.sun_dir,                                                           // sun_dir
+        GetFacingDirectionLoaded(),                                           // radiator_dir
+        vi.body_flux,                                                         // body_flux
+        vi.albedo_flux,                                                       // albedo_flux
+        vi.solar_flux,                                                        // solar_flux
+        vi.env_temperature,                                                   // env_temperature
+        vessel.mainBody.GetPressure(Math.Max(vessel.altitude, 0.0)),          // env_pressure
         surface,
         radiator_type,
         emissivity,
@@ -210,7 +210,7 @@ namespace KERBALISM
         info.body_flux,                                           // body_flux
         info.albedo_flux,                                         // albedo_flux
         info.solar_flux,                                          // solar_flux
-        info.temperature,                                         // env_temperature
+        info.env_temperature,                                     // env_temperature
         v.mainBody.GetPressure(Math.Max(v.altitude, 0.0)),        // env_pressure
         surface,
         Lib.Proto.GetString(m, "radiator_type"),
