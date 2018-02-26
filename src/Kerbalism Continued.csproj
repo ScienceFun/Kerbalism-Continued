@@ -175,7 +175,7 @@
     <Compile Include="Utility\Profiler.cs" />
     <Compile Include="Utility\Space.cs" />
     <Compile Include="Utility\Specifics.cs" />
-    <Compile Include="Utility\Transform.cs" />
+    <Compile Include="Utility\Transformator.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

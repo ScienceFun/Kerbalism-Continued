@@ -11,7 +11,7 @@
     // Add compatibility and revert animation
     [KSPField] public bool  animBackwards;                              // If animation is playing in backwards, this can help to fix
     [KSPField] public bool  rotateIsTransform;                          // Rotation is not an animation, but a Transform
-    [KSPField] public float SpinRate = 10.0f;                           // Speed of the centrifuge rotation in deg/s
+    [KSPField] public float SpinRate = 20.0f;                           // Speed of the centrifuge rotation in deg/s
     [KSPField] public float SpinAccelerationRate = 1.0f;                // Rate at which the SpinRate accelerates (deg/s/s)
 
     Animator deploy_anim;
@@ -28,8 +28,9 @@
 
       // get animations
       deploy_anim = new Animator(part, deploy);
-      rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
       rotate_anim = new Animator(part, rotate);
+      // if is using Transform
+      rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
 
       // set animation state / invert animation
       if (animBackwards) deploy_anim.Still(deployed ? 0.0f : 1.0f);
@@ -47,51 +48,34 @@
 
     public void Update()
     {
-      // update RMB ui
-      Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
-
-      // if it is deploying, wait until the animation is over
-      if (deployed && !deploy_anim.Playing() && !rotate_anim.Playing() && !rotateIsTransform)
-      {
-        // then start the rotate animation
-        rotate_anim.Play(false, true);
-      }
-      else if (deployed && !deploy_anim.Playing() && rotateIsTransform)
-      {
-        rotate_transf.Play();
-      }
-
       // in flight, if deployed
-      if (Lib.IsFlight() && deployed && !deploy_anim.Playing())
+      if (Lib.IsFlight() && deployed)
       {
         // if there is no ec
-        if (ResourceCache.Info(vessel, "ElectricCharge").amount < 0.01)
+        if (ResourceCache.Info(vessel, "ElectricCharge").amount > double.Epsilon)
         {
           // pause rotate animation
           // - safe to pause multiple times
-          Lib.Debug("Pausing rotation");
-          rotate_anim.Pause();
-          rotate_transf.Stop();
+          if(rotateIsTransform && !rotate_transf.IsRotating()) rotate_transf.Play();
+          else rotate_anim.Resume(false);
         }
         // if there is enough ec instead
-        else if (!rotate_anim.Playing())
-        {
-          // resume rotate animation
-          // - safe to resume multiple times
-          if (rotate_anim != null) rotate_anim.Play(true, true);
-          if (rotate_transf != null) rotate_transf.Play();
-        }
         else
         {
           // resume rotate animation
           // - safe to resume multiple times
-          rotate_anim.Resume(false);
+          if (rotateIsTransform && rotate_transf.IsRotating()) rotate_transf.Stop();
+          else rotate_anim.Pause();
         }
       }
-      else if (rotateIsTransform)
-      {
-        rotate_transf.Stop();
-      }
+
+      Lib.Debug("Deploy is playing: {0}", deploy_anim.Playing());
+
+      // update RMB ui
+      //if (deploy_anim.Playing()) Events["Toggle"].active = false;
+      //else Events["Toggle"].active = true;
+
+      Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
     }
 
     public void FixedUpdate()
@@ -109,7 +93,7 @@
         ec.Consume(ec_rate * Kerbalism.elapsed_s);
       }
 
-      if(rotate_transf!= null) rotate_transf.DoSpin();
+      if (rotate_transf != null) rotate_transf.DoSpin();
     }
 
     public static void BackgroundUpdate(Vessel vessel, ProtoPartSnapshot p, ProtoPartModuleSnapshot m, GravityRing ring, Resource_Info ec, double elapsed_s)
@@ -127,18 +111,6 @@
     {
       // switch deployed state
       deployed = !deployed;
-
-      // stop loop animation if exist and we are retracting
-      if (!deployed)
-      {
-        rotate_anim.Stop();
-      }
-
-      // start deploy animation in the correct direction, if exist
-      deploy_anim.Play(deployed, false);
-
-      // update ui
-      Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
     }
 
     // action groups

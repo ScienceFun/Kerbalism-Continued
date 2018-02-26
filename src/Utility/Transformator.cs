@@ -24,12 +24,6 @@ namespace KERBALISM
 
       if (transf_name.Length > 0)
       {
-        Lib.Debug("Available transforms");
-        foreach (Transform child in p.transform)
-        {
-          Lib.Debug("Transform: {0}", child.name);
-        }
-
         Lib.Debug("Looking for : {0}", transf_name);
         Transform[] transfArray = p.FindModelTransforms(transf_name);
         if (transfArray.Length > 0)
@@ -47,22 +41,21 @@ namespace KERBALISM
 
     public void Play()
     {
+      Lib.Debug("Playing Transformation");
       if (transf != null) rotationRateGoal = 1.0f;
     }
 
     public void Stop()
     {
-      if (transf != null) rotationRateGoal = 0;
+      Lib.Debug("Stopping Transformation");
+      if (transf != null) rotationRateGoal = 0.0f;
     }
 
     public void DoSpin()
     {
       if(rotationRateGoal == 0.0f)
       {
-        if (Quaternion.Angle(baseAngles, transf.localRotation) <= 2.0f)
-        {
-          CurrentSpinRate = Mathf.MoveTowards(CurrentSpinRate, 0.0f, TimeWarp.fixedDeltaTime * spinAccel * 20f);
-        }
+        CurrentSpinRate = Mathf.MoveTowards(CurrentSpinRate, rotationRateGoal * SpinRate, TimeWarp.fixedDeltaTime * spinAccel);
       }
       else
       {
@@ -71,6 +64,17 @@ namespace KERBALISM
 
       float spin = Mathf.Clamp(TimeWarp.fixedDeltaTime * CurrentSpinRate, -10.0f, 10.0f);
       transf.Rotate(Vector3.forward * spin);
+      Lib.Debug("CurrentSpinRate: {0}", CurrentSpinRate);
+    }
+
+    public bool IsRotating()
+    {
+      return CurrentSpinRate > 0.0f;
+    }
+
+    public bool IsTotalSpeedRotate()
+    {
+      return CurrentSpinRate ==  SpinRate;
     }
   }
 }
