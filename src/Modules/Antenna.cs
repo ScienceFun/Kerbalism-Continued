@@ -41,7 +41,9 @@ namespace KERBALISM
       extended |= part.FindModuleImplementing<ModuleAnimationGroup>() == null;
 
       if (cost == 0) cost = dist / 50000000;
-      if(rate == 0) rate = cost * 0.064;
+      if (rate == 0) rate = cost * 0.064;
+
+      dist *= Settings.SignalModifier;
 
       // create data stream, used if science system is disabled
       stream = new DataStream();

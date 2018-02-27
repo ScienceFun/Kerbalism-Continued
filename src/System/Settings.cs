@@ -57,8 +57,9 @@
       StormEjectionSpeed      = Lib.ConfigValue(cfg, "StormEjectionSpeed",  1000000.0); // 0.33% c
 
       // signal
-      UnlinkedControl         = Lib.ConfigEnum(cfg, "UnlinkedControl",      UnlinkedCtrl.none);
+      UnlinkedControl         = Lib.ConfigEnum(cfg,  "UnlinkedControl",     UnlinkedCtrl.none);
       ExtendedAntenna         = Lib.ConfigValue(cfg, "ExtendedAntenna",     true);
+      SignalModifier          = Lib.ConfigValue(cfg, "SignalModifier",      1.0);
 
       // science
       ScienceDialog           = Lib.ConfigValue(cfg, "ScienceDialog",       true);
@@ -126,6 +127,7 @@
     // signal
     public static UnlinkedCtrl UnlinkedControl;     // available control for unlinked vessels: 'none', 'limited' or 'full'
     public static bool ExtendedAntenna;             // antenna only work if extended
+    public static double SignalModifier;            // antenna range modifier
 
     // science
     public static bool ScienceDialog;               // keep showing the stock science dialog

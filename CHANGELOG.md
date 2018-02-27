@@ -7,3 +7,5 @@ Fev 11: CryoTank    - CryoTank Compatibility has been fixed
 Fev 12: Science     - Laboratory analysis_rate *= crew_qtty * crew_lvl_avg;
 
 Fev 13: SSPX        - SSPX Redux compatibility has been fixed
+
+Fev 26: Signal      - Added SignalModifier into Setting.cfg
