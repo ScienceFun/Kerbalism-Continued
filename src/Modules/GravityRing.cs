@@ -14,13 +14,13 @@
     [KSPField] public float SpinRate = 20.0f;                           // Speed of the centrifuge rotation in deg/s
     [KSPField] public float SpinAccelerationRate = 1.0f;                // Rate at which the SpinRate accelerates (deg/s/s)
 
+    private bool waitRotation;
+
     Animator deploy_anim;
     Animator rotate_anim;
 
     // Add compatibility
     Transformator rotate_transf;
-
-    public StartState localState;
 
     // pseudo-ctor
     public override void OnStart(StartState state)
@@ -35,9 +35,8 @@
       rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
 
       // set animation state / invert animation
-      //if (animBackwards) deploy_anim.Still(deployed ? 0.0f : 1.0f);
-      //else 
       deploy_anim.Still(deployed ? 1.0f : 0.0f);
+      deploy_anim.Stop();
 
       if (deployed)
       {
@@ -51,11 +50,9 @@
 
     public void Update()
     {
-      Lib.Debug("Deploy Playing: {0}", deploy_anim.Playing());
-     
       // update RMB ui
       Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
-      Events["Toggle"].active = !deploy_anim.Playing();
+      Events["Toggle"].active = !deploy_anim.Playing() && !waitRotation && ResourceCache.Info(vessel, "ElectricCharge").amount > ec_rate;
 
       //&& !deploy_anim.Playing()
       // in flight, if deployed
@@ -85,8 +82,25 @@
       // do nothing in the editor
       if (Lib.IsEditor()) return;
 
-      // if the module is either non-deployable or deployed
-      if (deploy.Length == 0 || deployed)
+      // start deploy animation in the correct direction, when is not rotating
+      if (waitRotation)
+      {
+        if (rotateIsTransform && !rotate_transf.IsRotating())
+        {
+          if (animBackwards) deploy_anim.Play(deployed, false);
+          else deploy_anim.Play(!deployed, false);
+          waitRotation = false;
+        }
+        else if(!rotateIsTransform && !rotate_anim.Playing())
+        {
+          if (animBackwards) deploy_anim.Play(deployed, false);
+          else deploy_anim.Play(!deployed, false);
+          waitRotation = false;
+        }
+      }
+
+      // if the module is either non-deployable or deployed  or is rotating
+      if (deploy.Length == 0 || deployed || rotate_transf.IsRotating() || rotate_anim.Playing())
       {
         // get resource handler
         Resource_Info ec = ResourceCache.Info(vessel, "ElectricCharge");
@@ -112,16 +126,32 @@
     public void Toggle()
     {
       // switch deployed state
-      deployed = !deployed;
+      deployed ^= true;
 
       // stop loop animation if exist and we are retracting
       if (!deployed)
       {
-        rotate_anim.Stop();
+        if (rotateIsTransform && rotate_transf.IsRotating()) rotate_transf.Stop();
+        else rotate_anim.Stop();
       }
 
-      // start deploy animation in the correct direction, if exist
-      deploy_anim.Play(!deployed, false);
+      if (rotateIsTransform) waitRotation = rotate_transf.IsRotating();
+      else waitRotation = rotate_anim.Playing();
+
+      if(!waitRotation)
+      {
+        if (rotateIsTransform && !rotate_transf.IsRotating())
+        {
+          if (animBackwards) deploy_anim.Play(deployed, false);
+          else deploy_anim.Play(!deployed, false);
+          waitRotation = false;
+        }
+        else if (!rotateIsTransform && !rotate_anim.Playing())
+        {
+          if (animBackwards) deploy_anim.Play(deployed, false);
+          else deploy_anim.Play(!deployed, false);
+        }
+      }
     }
 
     // action groups

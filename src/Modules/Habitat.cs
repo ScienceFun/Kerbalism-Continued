@@ -31,6 +31,8 @@ namespace KERBALISM
       // calculate habitat external surface
       if (surface <= double.Epsilon) surface = Lib.PartSurface(part);
 
+      if (CrewCapacity == 0) CrewCapacity = part.CrewCapacity;
+
       // set RMB UI status strings
       Volume = Lib.HumanReadableVolume(volume);
       Surface = Lib.HumanReadableSurface(surface);
@@ -238,7 +240,7 @@ namespace KERBALISM
           break;
       }
 
-      part.CrewCapacity = perctDeployed == 100 ? CrewCapacity : 0;
+      part.CrewCapacity = perctDeployed == 100 && inflate.Length != 0 ? CrewCapacity : 0;
 
       // instant pressurization and scrubbing inside breathable atmosphere
       if (!Lib.IsEditor() && Cache.VesselInfo(vessel).breathable && inflate.Length == 0)

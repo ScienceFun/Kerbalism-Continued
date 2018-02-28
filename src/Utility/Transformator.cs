@@ -64,17 +64,11 @@ namespace KERBALISM
 
       float spin = Mathf.Clamp(TimeWarp.fixedDeltaTime * CurrentSpinRate, -10.0f, 10.0f);
       transf.Rotate(Vector3.forward * spin);
-      Lib.Debug("CurrentSpinRate: {0}", CurrentSpinRate);
     }
 
     public bool IsRotating()
     {
       return CurrentSpinRate > 0.0f;
-    }
-
-    public bool IsTotalSpeedRotate()
-    {
-      return CurrentSpinRate ==  SpinRate;
     }
   }
 }
