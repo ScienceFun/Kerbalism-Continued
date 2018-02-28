@@ -20,6 +20,8 @@
     // Add compatibility
     Transformator rotate_transf;
 
+    public StartState localState;
+
     // pseudo-ctor
     public override void OnStart(StartState state)
     {
@@ -33,8 +35,9 @@
       rotate_transf = new Transformator(part, rotate, SpinRate, SpinAccelerationRate);
 
       // set animation state / invert animation
-      if (animBackwards) deploy_anim.Still(deployed ? 0.0f : 1.0f);
-      else deploy_anim.Still(deployed ? 1.0f : 0.0f);
+      //if (animBackwards) deploy_anim.Still(deployed ? 0.0f : 1.0f);
+      //else 
+      deploy_anim.Still(deployed ? 1.0f : 0.0f);
 
       if (deployed)
       {
@@ -48,34 +51,33 @@
 
     public void Update()
     {
+      Lib.Debug("Deploy Playing: {0}", deploy_anim.Playing());
+     
+      // update RMB ui
+      Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
+      Events["Toggle"].active = !deploy_anim.Playing();
+
+      //&& !deploy_anim.Playing()
       // in flight, if deployed
       if (Lib.IsFlight() && deployed)
       {
         // if there is no ec
-        if (ResourceCache.Info(vessel, "ElectricCharge").amount > double.Epsilon)
+        if (ResourceCache.Info(vessel, "ElectricCharge").amount < 0.01)
         {
           // pause rotate animation
           // - safe to pause multiple times
-          if(rotateIsTransform && !rotate_transf.IsRotating()) rotate_transf.Play();
-          else rotate_anim.Resume(false);
+          if(rotateIsTransform && rotate_transf.IsRotating()) rotate_transf.Stop();
+          else rotate_anim.Pause();
         }
-        // if there is enough ec instead
-        else
+        // if there is enough ec instead and is not deploying
+        else if(!deploy_anim.Playing())
         {
           // resume rotate animation
           // - safe to resume multiple times
-          if (rotateIsTransform && rotate_transf.IsRotating()) rotate_transf.Stop();
-          else rotate_anim.Pause();
+          if (rotateIsTransform && !rotate_transf.IsRotating()) rotate_transf.Play();
+          else rotate_anim.Resume(false);
         }
       }
-
-      Lib.Debug("Deploy is playing: {0}", deploy_anim.Playing());
-
-      // update RMB ui
-      //if (deploy_anim.Playing()) Events["Toggle"].active = false;
-      //else Events["Toggle"].active = true;
-
-      Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
     }
 
     public void FixedUpdate()
@@ -93,7 +95,7 @@
         ec.Consume(ec_rate * Kerbalism.elapsed_s);
       }
 
-      if (rotate_transf != null) rotate_transf.DoSpin();
+      if (rotateIsTransform && rotate_transf != null) rotate_transf.DoSpin();
     }
 
     public static void BackgroundUpdate(Vessel vessel, ProtoPartSnapshot p, ProtoPartModuleSnapshot m, GravityRing ring, Resource_Info ec, double elapsed_s)
@@ -111,6 +113,15 @@
     {
       // switch deployed state
       deployed = !deployed;
+
+      // stop loop animation if exist and we are retracting
+      if (!deployed)
+      {
+        rotate_anim.Stop();
+      }
+
+      // start deploy animation in the correct direction, if exist
+      deploy_anim.Play(!deployed, false);
     }
 
     // action groups
