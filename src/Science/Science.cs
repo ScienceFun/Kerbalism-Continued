@@ -30,7 +30,7 @@ namespace KERBALISM
     public static void Update(Vessel v, Vessel_Info vi, VesselData vd, Vessel_Resources resources, double elapsed_s)
     {
       // hard-coded transmission buffer size in Mb
-      const double buffer_capacity = 8.0;
+      const double buffer_capacity = 2.0;
 
       // do nothing if science system is disabled
       if (!Features.Science) return;
