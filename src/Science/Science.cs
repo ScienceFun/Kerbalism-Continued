@@ -84,7 +84,7 @@ namespace KERBALISM
         if (file.size <= double.Epsilon || file.buff > buffer_capacity)
         {
           // collect the science data
-          Science.Credit(filename, file.buff, true, v.protoVessel);
+          Credit(filename, file.buff, true, v.protoVessel);
 
           // reset the buffer
           file.buff = 0.0;
@@ -99,7 +99,7 @@ namespace KERBALISM
           // inform the user
           Message.Post
           (
-            Lib.BuildString("<color=cyan><b>DATA RECEIVED</b></color>\nTransmission of <b>", Science.Experiment(filename).name, "</b> completed"),
+            Lib.BuildString("<color=cyan><b>DATA RECEIVED</b></color>\nTransmission of <b>", Experiment(filename).name, "</b> completed"),
             Lib.TextVariant("Our researchers will jump on it right now", "The checksum is correct, data must be valid")
           );
         }
