@@ -71,7 +71,7 @@ namespace KERBALISM
               type.Add(a.type);
               cost.Add(a.cost);
               rate.Add(a.rate);
-              dist.Add(a.dist);
+              dist.Add(a.dist * Settings.SignalModifier);
               relay.Add(ec_available && antenna_is_relay);
               is_relay |= ec_available && antenna_is_relay;
               direct_cost += a.cost;

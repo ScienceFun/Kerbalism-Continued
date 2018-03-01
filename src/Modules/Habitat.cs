@@ -41,6 +41,11 @@ namespace KERBALISM
       Events["Toggle"].active = toggle;
       Actions["Action"].active = toggle;
 
+#if DEBUG
+      Fields["Volume"].guiActive = true;
+      Fields["Surface"].guiActive = true;
+#endif
+
       // create animators
       inflate_anim = new Animator(part, inflate);
 

@@ -996,6 +996,9 @@ namespace KERBALISM
         var res = p.Resources[res_name];
         res.amount += amount;
         res.maxAmount += capacity;
+#if DEBUG
+        res.isVisible = true;
+#endif
       }
       // if the resource is not already in the part
       else
@@ -1006,7 +1009,7 @@ namespace KERBALISM
         // if the resource is not known, log a warning and do nothing
         if (!reslib.Contains(res_name))
         {
-          Lib.Verbose(Lib.BuildString("error while adding ", res_name, ": the resource doesn't exist"));
+          Verbose(BuildString("error while adding ", res_name, ": the resource doesn't exist"));
           return;
         }
 
@@ -1018,7 +1021,9 @@ namespace KERBALISM
         res.AddValue("name", res_name);
         res.AddValue("amount", amount);
         res.AddValue("maxAmount", capacity);
-
+#if DEBUG
+        res.AddValue("isVisible", true);
+#endif
         // add it to the part
         p.Resources.Add(res);
       }

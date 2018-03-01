@@ -7,23 +7,23 @@ namespace KERBALISM
   {
     public Rule(ConfigNode node)
     {
-      name = Lib.ConfigValue(node, "name", string.Empty);
-      input = Lib.ConfigValue(node, "input", string.Empty);
-      output = Lib.ConfigValue(node, "output", string.Empty);
-      interval = Lib.ConfigValue(node, "interval", 0.0);
-      rate = Lib.ConfigValue(node, "rate", 0.0);
-      ratio = Lib.ConfigValue(node, "ratio", 0.0);
-      degeneration = Lib.ConfigValue(node, "degeneration", 0.0);
-      variance = Lib.ConfigValue(node, "variance", 0.0);
-      modifiers = Lib.Tokenize(Lib.ConfigValue(node, "modifier", string.Empty), ',');
-      breakdown = Lib.ConfigValue(node, "breakdown", false);
+      name              = Lib.ConfigValue(node, "name", string.Empty);
+      input             = Lib.ConfigValue(node, "input", string.Empty);
+      output            = Lib.ConfigValue(node, "output", string.Empty);
+      interval          = Lib.ConfigValue(node, "interval", 0.0);
+      rate              = Lib.ConfigValue(node, "rate", 0.0);
+      ratio             = Lib.ConfigValue(node, "ratio", 0.0);
+      degeneration      = Lib.ConfigValue(node, "degeneration", 0.0);
+      variance          = Lib.ConfigValue(node, "variance", 0.0);
+      modifiers         = Lib.Tokenize(Lib.ConfigValue(node, "modifier", string.Empty), ',');
+      breakdown         = Lib.ConfigValue(node, "breakdown", false);
       warning_threshold = Lib.ConfigValue(node, "warning_threshold", 0.33);
-      danger_threshold = Lib.ConfigValue(node, "danger_threshold", 0.66);
-      fatal_threshold = Lib.ConfigValue(node, "fatal_threshold", 1.0);
-      warning_message = Lib.ConfigValue(node, "warning_message", string.Empty);
-      danger_message = Lib.ConfigValue(node, "danger_message", string.Empty);
-      fatal_message = Lib.ConfigValue(node, "fatal_message", string.Empty);
-      relax_message = Lib.ConfigValue(node, "relax_message", string.Empty);
+      danger_threshold  = Lib.ConfigValue(node, "danger_threshold", 0.66);
+      fatal_threshold   = Lib.ConfigValue(node, "fatal_threshold", 1.0);
+      warning_message   = Lib.ConfigValue(node, "warning_message", string.Empty);
+      danger_message    = Lib.ConfigValue(node, "danger_message", string.Empty);
+      fatal_message     = Lib.ConfigValue(node, "fatal_message", string.Empty);
+      relax_message     = Lib.ConfigValue(node, "relax_message", string.Empty);
 
       // check that name is specified
       if (name.Length == 0) throw new Exception("skipping unnamed rule");
