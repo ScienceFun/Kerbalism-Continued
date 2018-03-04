@@ -109,9 +109,9 @@ namespace KERBALISM
           return Lib.BuildString
           (
             "<align=left />",
-            "solar flux\t<b>", Lib.HumanReadableFlux(vi.solar_flux), "</b>\n",
+            "solar flux\t<b>",  Lib.HumanReadableFlux(vi.solar_flux), "</b>\n",
             "albedo flux\t<b>", Lib.HumanReadableFlux(vi.albedo_flux), "</b>\n",
-            "body flux\t<b>", Lib.HumanReadableFlux(vi.body_flux), "</b>"
+            "body flux\t<b>",   Lib.HumanReadableFlux(vi.body_flux), "</b>"
           );
 
         case "radiation":

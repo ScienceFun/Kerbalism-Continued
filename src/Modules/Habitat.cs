@@ -9,9 +9,9 @@ namespace KERBALISM
     [KSPField] public string  inflate = string.Empty;  // inflate animation, if any
     [KSPField] public bool    toggle = true;           // show the enable/disable toggle
     [KSPField] public bool    animBackwards;
+    [KSPField] public int     CrewCapacity;
 
     [KSPField(isPersistant = true)] public State    state = State.enabled;
-    [KSPField(isPersistant = true)] public int      CrewCapacity;
     [KSPField(isPersistant = true)] private double  perctDeployed = 0;
 
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")]  public string Volume;
@@ -33,6 +33,11 @@ namespace KERBALISM
 
       if (CrewCapacity == 0) CrewCapacity = part.CrewCapacity;
 
+      if (inflate.Length != 0)
+      {
+        SetCrewCapacity(Lib.Level(part, "Atmosphere") >= 1);
+      }
+
       // set RMB UI status strings
       Volume = Lib.HumanReadableVolume(volume);
       Surface = Lib.HumanReadableSurface(surface);
@@ -44,6 +49,8 @@ namespace KERBALISM
 #if DEBUG
       Fields["Volume"].guiActive = true;
       Fields["Surface"].guiActive = true;
+      Fields["CrewCapacity"].guiActive = true;
+      Fields["state"].guiActive = true;
 #endif
 
       // create animators
@@ -98,52 +105,59 @@ namespace KERBALISM
       // in flight
       if (Lib.IsFlight())
       {
-        // shortcuts
-        Resource_Info vessel_atmo = ResourceCache.Info(vessel, "Atmosphere");
+        double atmosphereAmount = 0;
+        double atmosphereMaxAmount = 0;
+        double partsHabVolume = 0;
+        // Get all habs no inflate in the vessel
+        foreach (Habitat partHabitat in vessel.FindPartModulesImplementing<Habitat>())
+        {
+          if (partHabitat.inflate.Length == 0)
+          {
+            PartResource t = partHabitat.part.Resources["Atmosphere"];
+            atmosphereAmount += t.amount;
+            atmosphereMaxAmount += t.maxAmount;
+            partsHabVolume += partHabitat.volume;
+          }
+        }
         PartResource hab_atmo = part.Resources["Atmosphere"];
 
-        // get level of atmosphere in vessel and part
-        double vessel_level = vessel_atmo.level;
+        // get level of atmosphere in part
         double hab_level = Lib.Level(part, "Atmosphere", true);
 
-        perctDeployed = (hab_atmo.amount / hab_atmo.maxAmount) * 100;
-
         // equalization succeeded if the levels are the same
-        // note: this behave correctly in the case the hab is the only enabled one or not
-        //if (Math.Abs(vessel_level - hab_level) < 0.01) return State.enabled;
-        if (perctDeployed == 100) return State.enabled;
+        if (perctDeployed == 1)
+        {
+          RefreshPartData();
+          return State.enabled;
+        }
 
-        // in case vessel pressure is dropping during equalization, it mean that pressure
-        // control is not enough so we just enable the hab while not fully equalized
-        //if (vessel_atmo.rate < 0.0) return State.enabled;
+        // case if it has only one hab part and it is inflate
+        // sample: proto + inflate habitat
+        if (atmosphereMaxAmount == 0) return State.equalizing;
 
         // determine equalization speed
         // we deal with the case where a big hab is sucking all atmosphere from the rest of the vessel
-        double amount = Math.Min(Cache.VesselInfo(vessel).volume, volume) * equalize_speed * Kerbalism.elapsed_s;
+        double amount = Math.Min(partsHabVolume, volume) * equalize_speed * Kerbalism.elapsed_s;
 
-        // vessel pressure is higher
-        if (vessel_level > hab_level)
+        // the others hab pressure are higher
+        if ((atmosphereAmount / atmosphereMaxAmount) > hab_level)
         {
-          // clamp amount to what's available in the vessel and what can fit in the part
-          amount = Math.Min(amount, vessel_atmo.amount);
+          // clamp amount to what's available in the hab and what can fit in the part
+          amount = Math.Min(amount, atmosphereAmount);
           amount = Math.Min(amount, hab_atmo.maxAmount - hab_atmo.amount);
 
-          // consume from all enabled habs in the vessel
-          vessel_atmo.Consume(amount);
+          // consume from all enabled habs in the vessel that are not Inflate
+          foreach (Habitat partHabitat in vessel.FindPartModulesImplementing<Habitat>())
+          {
+            if (partHabitat.inflate.Length == 0)
+            {
+              PartResource t = partHabitat.part.Resources["Atmosphere"];
+              t.amount -= (amount * (t.amount / atmosphereAmount));
+            }
+          }
 
           // produce in the part
           hab_atmo.amount += amount;
-        }
-        // vessel pressure is lower
-        else
-        {
-          // consume from the part, clamp amount to what's available in the part
-          amount = Math.Min(amount, hab_atmo.amount);
-          hab_atmo.amount -= amount;
-
-          // produce in all enabled habs in the vessel
-          // (attempt recovery, but dump overboard if there is no capacity left)
-          vessel_atmo.Produce(amount);
         }
 
         // equalization still in progress
@@ -170,15 +184,20 @@ namespace KERBALISM
         PartResource atmo = part.Resources["Atmosphere"];
         PartResource waste = part.Resources["WasteAtmosphere"];
 
+        // get level of atmosphere in part
+        double hab_level = Lib.Level(part, "Atmosphere", true);
+
         // venting succeeded if the amount reached zero
-        if (atmo.amount <= double.Epsilon && waste.amount <= double.Epsilon) return State.disabled;
+        if (atmo.amount <= double.Epsilon && waste.amount <= double.Epsilon)
+        {
+          RefreshPartData();
+          return State.disabled;
+        }
 
         // how much to vent
         double rate = volume * equalize_speed * Kerbalism.elapsed_s;
         double atmo_k = atmo.amount / (atmo.amount + waste.amount);
         double waste_k = waste.amount / (atmo.amount + waste.amount);
-
-        perctDeployed = (atmo.amount / atmo.maxAmount) * 100;
 
         // consume from the part, clamp amount to what's available
         atmo.amount = Math.Max(atmo.amount - rate * atmo_k, 0.0);
@@ -195,13 +214,15 @@ namespace KERBALISM
         part.Resources["WasteAtmosphere"].amount = 0.0;
 
         // return new state
+        RefreshPartData();
         return State.disabled;
       }
     }
 
     public void Update()
     {
-      // update ui
+      perctDeployed = Lib.Level(part, "Atmosphere", true);
+
       string status_str = string.Empty;
       switch (state)
       {
@@ -210,12 +231,13 @@ namespace KERBALISM
         case State.equalizing:  status_str = inflate.Length == 0 ? "equalizing...(" : "inflating...("; break;
         case State.venting:     status_str = inflate.Length == 0 ? "venting...(" : "deflating...("; break;
       }
-      if (state == State.equalizing || state == State.venting) status_str += (Math.Floor(perctDeployed * 100) / 100).ToString() + "%)";
+      // update ui
+      if (state == State.equalizing || state == State.venting) status_str += (Math.Round(perctDeployed, 2) * 100).ToString() + "%)";
       Events["Toggle"].guiName = Lib.StatusToggle("Habitat", status_str);
 
       // if there is an inflate animation, set still animation from pressure
-      if (animBackwards) inflate_anim.Still(Math.Abs((perctDeployed / 100) - 1));
-      else inflate_anim.Still((perctDeployed / 100));
+      if (animBackwards) inflate_anim.Still(Math.Abs(perctDeployed - 1));
+      else inflate_anim.Still((perctDeployed));
     }
 
     public void FixedUpdate()
@@ -245,7 +267,10 @@ namespace KERBALISM
           break;
       }
 
-      part.CrewCapacity = perctDeployed == 100 && inflate.Length != 0 ? CrewCapacity : 0;
+      if(inflate.Length != 0)
+      {
+        SetCrewCapacity(state == State.enabled);
+      }
 
       // instant pressurization and scrubbing inside breathable atmosphere
       if (!Lib.IsEditor() && Cache.VesselInfo(vessel).breathable && inflate.Length == 0)
@@ -346,6 +371,38 @@ namespace KERBALISM
       else if (v >= 0.5) return "modest";
       else if (v >= 0.25) return "poor";
       else return "cramped";
+    }
+
+    // Set the crew capacity of the part
+    void SetCrewCapacity(bool canUseCrew)
+    {
+      if (canUseCrew)
+      {
+        part.crewTransferAvailable = true;
+        part.CrewCapacity = CrewCapacity;
+      }
+      else
+      {
+        part.crewTransferAvailable = false;
+        part.CrewCapacity = 0;
+      }
+      //part.CheckTransferDialog();
+      //MonoUtilities.RefreshContextWindows(part);
+    }
+
+    void RefreshPartData()
+    {
+      if (HighLogic.LoadedSceneIsEditor)
+      {
+        GameEvents.onEditorPartEvent.Fire(ConstructionEventType.PartTweaked, part);
+        GameEvents.onEditorShipModified.Fire(EditorLogic.fetch.ship);
+      }
+      else if (HighLogic.LoadedSceneIsFlight)
+      {
+        GameEvents.onVesselWasModified.Fire(this.vessel);
+      }
+      part.CheckTransferDialog();
+      MonoUtilities.RefreshContextWindows(part);
     }
 
     // habitat state
