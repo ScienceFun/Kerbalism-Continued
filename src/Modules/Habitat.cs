@@ -36,6 +36,7 @@ namespace KERBALISM
       if (inflate.Length != 0)
       {
         SetCrewCapacity(Lib.Level(part, "Atmosphere") >= 1);
+        RefreshPartData();
       }
 
       // set RMB UI status strings

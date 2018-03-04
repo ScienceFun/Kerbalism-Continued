@@ -11,7 +11,7 @@ Fev 13: SSPX        - SSPX Redux compatibility has been fixed
 Fev 26: Signal      - Added SignalModifier into Setting.cfg
 
 Mar 3: Habitat      - CrewCapacity bug has been fixed
-                    - Inflate has change
+                    - Inflate has changed
                       - The inflate module will only be activated when 100% deployed
                       - The Inflate module doesn't equalize with another inflator module
-                      - SSPX more compatible with Kerbalism, not yet complete.
+                    - SSPX more compatible with Kerbalism, not yet complete.
