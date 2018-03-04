@@ -141,7 +141,7 @@ namespace KERBALISM
         double amount = Math.Min(partsHabVolume, volume) * equalize_speed * Kerbalism.elapsed_s;
 
         // the others hab pressure are higher
-        if ((atmosphereAmount / atmosphereMaxAmount) > hab_level)
+        if ((atmosphereAmount / atmosphereMaxAmount) > hab_level || (atmosphereAmount / atmosphereMaxAmount) > 0.5)
         {
           // clamp amount to what's available in the hab and what can fit in the part
           amount = Math.Min(amount, atmosphereAmount);
@@ -233,7 +233,7 @@ namespace KERBALISM
         case State.venting:     status_str = inflate.Length == 0 ? "venting...(" : "deflating...("; break;
       }
       // update ui
-      if (state == State.equalizing || state == State.venting) status_str += (Math.Round(perctDeployed, 2) * 100).ToString() + "%)";
+      if (state == State.equalizing || state == State.venting) status_str += (perctDeployed * 100).ToString() + "%)";
       Events["Toggle"].guiName = Lib.StatusToggle("Habitat", status_str);
 
       // if there is an inflate animation, set still animation from pressure

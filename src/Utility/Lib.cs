@@ -998,6 +998,7 @@ namespace KERBALISM
         res.maxAmount += capacity;
 #if DEBUG
         res.isVisible = true;
+        Lib.Debug("Resource '{0}' is already in the part", res_name);
 #endif
       }
       // if the resource is not already in the part
@@ -1023,6 +1024,7 @@ namespace KERBALISM
         res.AddValue("maxAmount", capacity);
 #if DEBUG
         res.AddValue("isVisible", true);
+        Lib.Debug("Resource '{0}' is not already in the part", res_name);
 #endif
         // add it to the part
         p.Resources.Add(res);
