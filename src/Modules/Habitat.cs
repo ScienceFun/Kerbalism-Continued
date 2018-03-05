@@ -4,12 +4,12 @@ namespace KERBALISM
 {
   public sealed class Habitat : PartModule, ISpecifics, IConfigurable
   {
-    [KSPField] public double volume = 0.0;            // habitable volume in m^3, deduced from bounding box if not specified
-    [KSPField] public double surface = 0.0;           // external surface in m^2, deduced from bounding box if not specified
-    [KSPField] public string inflate = string.Empty;  // inflate animation, if any
-    [KSPField] public bool toggle = true;             // show the enable/disable toggle
-    [KSPField] public bool animBackwards;
-    [KSPField] public int CrewCapacity;
+    [KSPField] public double  volume = 0.0;           // habitable volume in m^3, deduced from bounding box if not specified
+    [KSPField] public double  surface = 0.0;          // external surface in m^2, deduced from bounding box if not specified
+    [KSPField] public string  inflate = string.Empty; // inflate animation, if any
+    [KSPField] public bool    toggle = true;          // show the enable/disable toggle
+    [KSPField] public bool    animBackwards;
+    [KSPField] public int     CrewCapacity;
 
     [KSPField(isPersistant = true)] public State state = State.enabled;
     [KSPField(isPersistant = true)] private double perctDeployed = 0;
@@ -17,31 +17,23 @@ namespace KERBALISM
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")] public string Volume;
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Surface")] public string Surface;
 
-    Animator inflate_anim;
+    private Animator inflate_anim;
+    private bool hasCLS;
 
-    bool hasCLS;
-
-    // pseudo-ctor
     public override void OnStart(StartState state)
     {
       // don't break tutorial scenarios
       if (Lib.DisableScenario(this)) return;
 
+      hasCLS = Lib.HasAssembly("ConnectedLivingSpace");
+
       // calculate habitat internal volume
       if (volume <= double.Epsilon) volume = Lib.PartVolume(part);
-
-      hasCLS = Lib.HasAssembly("ConnectedLivingSpace");
 
       // calculate habitat external surface
       if (surface <= double.Epsilon) surface = Lib.PartSurface(part);
 
       if (CrewCapacity == 0) CrewCapacity = part.CrewCapacity;
-
-      if (inflate.Length != 0)
-      {
-        SetCrewCapacity(Lib.Level(part, "Atmosphere") >= 1);
-        RefreshPartData();
-      }
 
       // set RMB UI status strings
       Volume = Lib.HumanReadableVolume(volume);
@@ -50,12 +42,11 @@ namespace KERBALISM
       // hide toggle if specified
       Events["Toggle"].active = toggle;
       Actions["Action"].active = toggle;
-
 #if DEBUG
-      Fields["Volume"].guiActive = true;
-      Fields["Surface"].guiActive = true;
-      Fields["CrewCapacity"].guiActive = true;
-      Fields["state"].guiActive = true;
+      Fields["Volume"].guiActive        = true;
+      Fields["Surface"].guiActive       = true;
+      Fields["CrewCapacity"].guiActive  = true;
+      Fields["state"].guiActive         = true;
 #endif
 
       // create animators
@@ -100,9 +91,9 @@ namespace KERBALISM
 
     void Set_Flow(bool b)
     {
-      Lib.SetResourceFlow(part, "Atmosphere", b);
-      Lib.SetResourceFlow(part, "WasteAtmosphere", b);
-      Lib.SetResourceFlow(part, "Shielding", b);
+      Lib.SetResourceFlow(part, "Atmosphere",       b);
+      Lib.SetResourceFlow(part, "WasteAtmosphere",  b);
+      Lib.SetResourceFlow(part, "Shielding",        b);
     }
 
     State Equalize()
@@ -119,33 +110,38 @@ namespace KERBALISM
           if (partHabitat.inflate.Length == 0)
           {
             PartResource t = partHabitat.part.Resources["Atmosphere"];
-            atmosphereAmount += t.amount;
-            atmosphereMaxAmount += t.maxAmount;
-            partsHabVolume += partHabitat.volume;
+            // If has the atmosphere resource
+            if (t != null)
+            {
+              atmosphereAmount += t.amount;
+              atmosphereMaxAmount += t.maxAmount;
+              partsHabVolume += partHabitat.volume;
+            }
           }
-        }
-        PartResource hab_atmo = part.Resources["Atmosphere"];
-
-        // get level of atmosphere in part
-        double hab_level = Lib.Level(part, "Atmosphere", true);
-
-        // equalization succeeded if the levels are the same
-        if (perctDeployed == 1)
-        {
-          RefreshPartData();
-          CLSInflateConnection(true);
-          return State.enabled;
         }
 
         // case if it has only one hab part and it is inflate
         // sample: proto + inflate habitat
         if (atmosphereMaxAmount == 0) return State.equalizing;
 
+        PartResource hab_atmo = part.Resources["Atmosphere"];
+
+        // get level of atmosphere in part
+        double hab_level = Lib.Level(part, "Atmosphere", true);
+
+        // equalization succeeded if the level is 100%
+        if (perctDeployed == 1)
+        {
+          CLSInflateConnection(true);
+          RefreshPartData();
+          return State.enabled;
+        }
+
         // determine equalization speed
         // we deal with the case where a big hab is sucking all atmosphere from the rest of the vessel
         double amount = Math.Min(partsHabVolume, volume) * equalize_speed * Kerbalism.elapsed_s;
 
-        // the others hab pressure are higher
+        // the others hab pressure are higher or can consume until 50% of the no inflate module
         if ((atmosphereAmount / atmosphereMaxAmount) > hab_level || (atmosphereAmount / atmosphereMaxAmount) > 0.5)
         {
           // clamp amount to what's available in the hab and what can fit in the part
@@ -187,6 +183,23 @@ namespace KERBALISM
       // in flight
       if (Lib.IsFlight())
       {
+        double atmosphereAmount = 0;
+        double atmosphereMaxAmount = 0;
+        // Get all habs no inflate in the vessel
+        foreach (Habitat partHabitat in vessel.FindPartModulesImplementing<Habitat>())
+        {
+          if (partHabitat.state == State.enabled || partHabitat.state == State.equalizing)
+          {
+            PartResource t = partHabitat.part.Resources["Atmosphere"];
+            // If has the atmosphere resource
+            if (t != null)
+            {
+              atmosphereAmount += t.amount;
+              atmosphereMaxAmount += t.maxAmount;
+            }
+          }
+        }
+
         // shortcuts
         PartResource atmo = part.Resources["Atmosphere"];
         PartResource waste = part.Resources["WasteAtmosphere"];
@@ -197,8 +210,8 @@ namespace KERBALISM
         // venting succeeded if the amount reached zero
         if (atmo.amount <= double.Epsilon && waste.amount <= double.Epsilon)
         {
-          RefreshPartData();
           CLSInflateConnection(false);
+          RefreshPartData();
           return State.disabled;
         }
 
@@ -206,6 +219,16 @@ namespace KERBALISM
         double rate = volume * equalize_speed * Kerbalism.elapsed_s;
         double atmo_k = atmo.amount / (atmo.amount + waste.amount);
         double waste_k = waste.amount / (atmo.amount + waste.amount);
+
+        // produce from all enabled habs in the vessel
+        foreach (Habitat partHabitat in vessel.FindPartModulesImplementing<Habitat>())
+        {
+          if (partHabitat.state == State.enabled || partHabitat.state == State.equalizing)
+          {
+            PartResource t = partHabitat.part.Resources["Atmosphere"];
+            t.amount += (Math.Max(atmo.amount - rate * atmo_k, 0.0) * (t.amount / atmosphereAmount));
+          }
+        }
 
         // consume from the part, clamp amount to what's available
         atmo.amount = Math.Max(atmo.amount - rate * atmo_k, 0.0);
@@ -275,10 +298,7 @@ namespace KERBALISM
           break;
       }
 
-      if (inflate.Length != 0)
-      {
-        SetCrewCapacity(state == State.enabled);
-      }
+      SetCrewCapacity(state == State.enabled);
 
       // instant pressurization and scrubbing inside breathable atmosphere
       if (!Lib.IsEditor() && Cache.VesselInfo(vessel).breathable && inflate.Length == 0)
@@ -394,8 +414,6 @@ namespace KERBALISM
         part.crewTransferAvailable = false;
         part.CrewCapacity = 0;
       }
-      //part.CheckTransferDialog();
-      //MonoUtilities.RefreshContextWindows(part);
     }
 
     void RefreshPartData()
