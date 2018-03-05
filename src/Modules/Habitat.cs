@@ -4,17 +4,17 @@ namespace KERBALISM
 {
   public sealed class Habitat : PartModule, ISpecifics, IConfigurable
   {
-    [KSPField] public double  volume = 0.0;            // habitable volume in m^3, deduced from bounding box if not specified
-    [KSPField] public double  surface = 0.0;           // external surface in m^2, deduced from bounding box if not specified
-    [KSPField] public string  inflate = string.Empty;  // inflate animation, if any
-    [KSPField] public bool    toggle = true;           // show the enable/disable toggle
-    [KSPField] public bool    animBackwards;
-    [KSPField] public int     CrewCapacity;
+    [KSPField] public double volume = 0.0;            // habitable volume in m^3, deduced from bounding box if not specified
+    [KSPField] public double surface = 0.0;           // external surface in m^2, deduced from bounding box if not specified
+    [KSPField] public string inflate = string.Empty;  // inflate animation, if any
+    [KSPField] public bool toggle = true;             // show the enable/disable toggle
+    [KSPField] public bool animBackwards;
+    [KSPField] public int CrewCapacity;
 
-    [KSPField(isPersistant = true)] public State    state = State.enabled;
-    [KSPField(isPersistant = true)] private double  perctDeployed = 0;
+    [KSPField(isPersistant = true)] public State state = State.enabled;
+    [KSPField(isPersistant = true)] private double perctDeployed = 0;
 
-    [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")]  public string Volume;
+    [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Volume")] public string Volume;
     [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Surface")] public string Surface;
 
     Animator inflate_anim;
@@ -27,10 +27,10 @@ namespace KERBALISM
       // don't break tutorial scenarios
       if (Lib.DisableScenario(this)) return;
 
-      hasCLS = Lib.HasAssembly("ConnectedLivingSpace");
-
       // calculate habitat internal volume
       if (volume <= double.Epsilon) volume = Lib.PartVolume(part);
+
+      hasCLS = Lib.HasAssembly("ConnectedLivingSpace");
 
       // calculate habitat external surface
       if (surface <= double.Epsilon) surface = Lib.PartSurface(part);
@@ -133,6 +133,7 @@ namespace KERBALISM
         if (perctDeployed == 1)
         {
           RefreshPartData();
+          CLSInflateConnection(true);
           return State.enabled;
         }
 
@@ -197,6 +198,7 @@ namespace KERBALISM
         if (atmo.amount <= double.Epsilon && waste.amount <= double.Epsilon)
         {
           RefreshPartData();
+          CLSInflateConnection(false);
           return State.disabled;
         }
 
@@ -238,7 +240,7 @@ namespace KERBALISM
         case State.venting:     status_str = inflate.Length == 0 ? "venting...(" : "deflating...("; break;
       }
       // update ui
-      if (state == State.equalizing || state == State.venting) status_str += (Math.Round(perctDeployed * 100,2)).ToString() + "%)";
+      if (state == State.equalizing || state == State.venting) status_str += (Math.Round(perctDeployed * 100, 2)).ToString() + "%)";
       Events["Toggle"].guiName = Lib.StatusToggle("Habitat", status_str);
 
       // if there is an inflate animation, set still animation from pressure
@@ -255,25 +257,25 @@ namespace KERBALISM
       switch (state)
       {
         case State.enabled:
-            Set_Flow(true);
+          Set_Flow(true);
           break;
 
         case State.disabled:
-            Set_Flow(false);
+          Set_Flow(false);
           break;
 
         case State.equalizing:
-            Set_Flow(true);
-            state = Equalize();
+          Set_Flow(true);
+          state = Equalize();
           break;
 
         case State.venting:
-            Set_Flow(false);
-            state = Venting();
+          Set_Flow(false);
+          state = Venting();
           break;
       }
 
-      if(inflate.Length != 0)
+      if (inflate.Length != 0)
       {
         SetCrewCapacity(state == State.enabled);
       }
@@ -409,6 +411,22 @@ namespace KERBALISM
       }
       part.CheckTransferDialog();
       MonoUtilities.RefreshContextWindows(part);
+    }
+
+    void CLSInflateConnection(bool passable)
+    {
+      if (hasCLS)
+      {
+        // for each module
+        foreach (PartModule m in part.Modules)
+        {
+          if (m.moduleName == "ModuleConnectedLivingSpace")
+          {
+            Lib.ReflectionValue(m, "passable", passable);
+            Lib.Debug("Part '{0}', CLS has been {1}",part.partInfo.title, passable ? "enabled" : "disabled");
+          }
+        }
+      }
     }
 
     // habitat state
