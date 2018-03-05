@@ -19,11 +19,15 @@ namespace KERBALISM
 
     Animator inflate_anim;
 
+    bool hasCLS;
+
     // pseudo-ctor
     public override void OnStart(StartState state)
     {
       // don't break tutorial scenarios
       if (Lib.DisableScenario(this)) return;
+
+      hasCLS = Lib.HasAssembly("ConnectedLivingSpace");
 
       // calculate habitat internal volume
       if (volume <= double.Epsilon) volume = Lib.PartVolume(part);
@@ -172,6 +176,7 @@ namespace KERBALISM
         hab_atmo.amount = hab_atmo.maxAmount;
 
         // return new state
+        RefreshPartData();
         return State.enabled;
       }
     }
@@ -233,7 +238,7 @@ namespace KERBALISM
         case State.venting:     status_str = inflate.Length == 0 ? "venting...(" : "deflating...("; break;
       }
       // update ui
-      if (state == State.equalizing || state == State.venting) status_str += (perctDeployed * 100).ToString() + "%)";
+      if (state == State.equalizing || state == State.venting) status_str += (Math.Round(perctDeployed * 100,2)).ToString() + "%)";
       Events["Toggle"].guiName = Lib.StatusToggle("Habitat", status_str);
 
       // if there is an inflate animation, set still animation from pressure
