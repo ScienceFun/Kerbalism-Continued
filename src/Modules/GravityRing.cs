@@ -52,9 +52,8 @@
     {
       // update RMB ui
       Events["Toggle"].guiName = deployed ? "Retract" : "Deploy";
-      Events["Toggle"].active = !deploy_anim.Playing() && !waitRotation && ResourceCache.Info(vessel, "ElectricCharge").amount > ec_rate;
+      Events["Toggle"].active = deploy.Length > 0 && !deploy_anim.Playing() && !waitRotation && ResourceCache.Info(vessel, "ElectricCharge").amount > ec_rate;
 
-      //&& !deploy_anim.Playing()
       // in flight, if deployed
       if (Lib.IsFlight() && deployed)
       {
@@ -82,11 +81,12 @@
       // do nothing in the editor
       if (Lib.IsEditor()) return;
 
-      // start deploy animation in the correct direction, when is not rotating
+      // When is not rotating
       if (waitRotation)
       {
         if (rotateIsTransform && !rotate_transf.IsRotating())
         {
+          // start deploy animation in the correct direction, when is not rotating
           if (animBackwards) deploy_anim.Play(deployed, false);
           else deploy_anim.Play(!deployed, false);
           waitRotation = false;
