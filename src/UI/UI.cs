@@ -48,12 +48,22 @@ namespace KERBALISM
 
     public static void OnGUI(bool show_window)
     {
-      // render subsystems
-      message.OnGUI();
-      if (show_window)
+      try
       {
-        launcher.OnGUI();
-        window.OnGUI();
+        // render subsystems
+        message.OnGUI();
+        if (show_window)
+        {
+          launcher.OnGUI();
+          window.OnGUI();
+        }
+      }
+      catch
+      {
+        Lib.Error("show_window: {0}", show_window);
+        Lib.Error("message isNull: {0}", message == null);
+        Lib.Error("launcher isNull: {0}", launcher == null);
+        Lib.Error("window isNull: {0}", window == null);
       }
     }
 

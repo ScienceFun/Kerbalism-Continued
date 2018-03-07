@@ -17,7 +17,7 @@ namespace KERBALISM
 
     // Kerbalism-Continued
     [KSPField] public bool  animBackwards;            // invert animation (case state is deployed but is showing the part retracted.)
-    [KSPField] public int   crewCapacity;             // Crewcapacity when is habitable
+    [KSPField] public int   crewCapacity = 0;         // Crewcapacity when is habitable
     [KSPField] public bool  hasGravityRing;           // Alpha test to create a habitat with GravityRing
 
     [KSPField(isPersistant = true)] private double perctDeployed = 0;
@@ -47,12 +47,6 @@ namespace KERBALISM
       // calculate habitat external surface
       if (surface <= double.Epsilon) surface = Lib.PartSurface(part);
 
-      // create animators
-      inflate_anim = new Animator(part, inflate);
-
-      // configure on start
-      Configure(true);
-
       // Get CrewCapacity from part if CrewCapacity is 0
       if (crewCapacity == 0) crewCapacity = part.CrewCapacity;
 
@@ -66,9 +60,14 @@ namespace KERBALISM
 #if DEBUG
       Fields["Volume"].guiActive = true;
       Fields["Surface"].guiActive = true;
-      Fields["CrewCapacity"].guiActive = true;
+      Fields["crewCapacity"].guiActive = true;
       Fields["state"].guiActive = true;
 #endif
+      // create animators
+      inflate_anim = new Animator(part, inflate);
+
+      // configure on start
+      Configure(true);
     }
 
     public void Configure(bool enable)
@@ -147,7 +146,11 @@ namespace KERBALISM
           CLSInflateConnection(true);
           SetCrewCapacity(true);
           RefreshPartData();
-          if (hasGravityRing) gravityRing.deployed = true;
+          if (hasGravityRing)
+          {
+            if (animBackwards) gravityRing.deployed = false;
+            else gravityRing.deployed = true;
+          }
           return State.enabled;
         }
 
@@ -157,7 +160,7 @@ namespace KERBALISM
 
         // the others habs pressure are higher or can consume until 50% of the no inflate module
         // 50% is temporary solution for do inflate faster
-        if ((atmosphereAmount / atmosphereMaxAmount) > perctDeployed || (atmosphereAmount / atmosphereMaxAmount) > 0.5)
+        if ((atmosphereAmount / atmosphereMaxAmount) > perctDeployed)
         {
           // clamp amount to what's available in the hab and what can fit in the part
           amount = Math.Min(amount, atmosphereAmount);
@@ -191,7 +194,11 @@ namespace KERBALISM
         CLSInflateConnection(true);
         SetCrewCapacity(true);
         RefreshPartData();
-        if (hasGravityRing) gravityRing.deployed = true;
+        if (hasGravityRing)
+        {
+          if (animBackwards) gravityRing.deployed = false;
+          else gravityRing.deployed = true;
+        }
         return State.enabled;
       }
     }
@@ -348,7 +355,11 @@ namespace KERBALISM
         CLSInflateConnection(false);
         SetCrewCapacity(false);
         RefreshPartData();
-        if (hasGravityRing) gravityRing.deployed = false;
+        if (hasGravityRing)
+        {
+          if (animBackwards) gravityRing.deployed = true;
+          else gravityRing.deployed = true;
+        }
       }
     }
 

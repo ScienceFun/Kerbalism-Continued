@@ -81,6 +81,13 @@
       // do nothing in the editor
       if (Lib.IsEditor()) return;
 
+      // stop loop animation if exist and we are retracting
+      if (!deployed)
+      {
+        if (rotateIsTransform && rotate_transf.IsRotating()) rotate_transf.Stop();
+        else rotate_anim.Stop();
+      }
+
       // When is not rotating
       if (waitRotation)
       {
@@ -127,13 +134,6 @@
     {
       // switch deployed state
       deployed ^= true;
-
-      // stop loop animation if exist and we are retracting
-      if (!deployed)
-      {
-        if (rotateIsTransform && rotate_transf.IsRotating()) rotate_transf.Stop();
-        else rotate_anim.Stop();
-      }
 
       if (rotateIsTransform) waitRotation = rotate_transf.IsRotating();
       else waitRotation = rotate_anim.Playing();

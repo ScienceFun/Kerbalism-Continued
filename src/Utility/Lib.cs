@@ -1267,7 +1267,10 @@ namespace KERBALISM
           }
           foreach (Shader shader in bundle.assetBundle.LoadAllAssets<Shader>())
           {
-            shaders.Add(shader.name.Replace("Custom/", string.Empty), new Material(shader));
+            if (!shaders.ContainsKey(shader.name.Replace("Custom/", string.Empty)))
+              shaders.Add(shader.name.Replace("Custom/", string.Empty), new Material(shader));
+            else
+              Error("Shader '{0}' already exist in dictionary", shader.name.Replace("Custom/", string.Empty));
           }
           bundle.assetBundle.Unload(false);
           bundle.Dispose();

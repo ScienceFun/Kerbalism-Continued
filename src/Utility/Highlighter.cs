@@ -32,7 +32,10 @@ namespace KERBALISM
             // the new color change module overwrite our highlights and was disabled, re-enable it
             prev_part.FindModulesImplementing<ModuleColorChanger>().ForEach(k => k.enabled = true);
           }
-          catch {}
+          catch 
+          {
+            Lib.Debug("Error to process '{0}' part.", prev_part.partInfo.title);
+          }
         }
       }
 
@@ -57,7 +60,10 @@ namespace KERBALISM
             // the new color change module seem to overwrite our highlights, disable it
             part.FindModulesImplementing<ModuleColorChanger>().ForEach(k => k.enabled = false);
           }
-          catch {}
+          catch 
+          {
+            Lib.Debug("Error to process '{0}' cor.", p.Value);
+          }
         }
       }
 
