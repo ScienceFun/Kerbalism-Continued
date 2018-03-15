@@ -11,6 +11,7 @@ namespace KERBALISM
     {
       vessels = new Dictionary<uint, Vessel_Info>();
       next_inc = 0;
+      Lib.Debug("Initialized");
     }
 
     public static void Clear()

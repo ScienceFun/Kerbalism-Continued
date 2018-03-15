@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 // render a textured point sprite
 // - POINT_TEXTURE: 2d texture to use
 // - POINT_COLOR: multiply texture sample with this
@@ -40,7 +42,7 @@ Shader "Custom/PointSprite"
       v2f vert(float4 in_pos : POSITION, out float4 pos : SV_POSITION)
       {
         // output clip-space vertex position
-        pos = mul(UNITY_MATRIX_MVP, in_pos);
+        pos = UnityObjectToClipPos(in_pos);
 
         // pass down point size and inverse of point size
         v2f o;

@@ -15,6 +15,7 @@ namespace KERBALISM
       // create mesh
       mesh = new Mesh();
       mesh.MarkDynamic();
+      Lib.Debug("Initialized");
     }
 
     // commit a particle to the renderer

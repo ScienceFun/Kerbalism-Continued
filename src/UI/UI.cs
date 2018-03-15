@@ -10,6 +10,7 @@ namespace KERBALISM
       message = new Message();
       launcher = new Launcher();
       window = new Window(260u, DB.ui.win_left, DB.ui.win_top);
+      Lib.Debug("Initialized");
     }
 
     public static void Sync()

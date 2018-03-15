@@ -11,6 +11,7 @@ namespace KERBALISM
     {
       // load shader
       mat = Lib.GetShader("AntiAliasedLine");
+      Lib.Debug("Initialized");
     }
 
     // commit a line

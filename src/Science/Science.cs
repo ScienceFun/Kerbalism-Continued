@@ -24,6 +24,7 @@ namespace KERBALISM
           prefab.gameObject.AddOrGetComponent<MiniHijacker>();
         }
       }
+      Lib.Debug("Initialized");
     }
 
     // consume EC for transmission, and transmit science data

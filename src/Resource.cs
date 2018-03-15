@@ -425,6 +425,7 @@ namespace KERBALISM
     public static void Init()
     {
       entries = new Dictionary<Guid, Vessel_Resources>();
+      Lib.Debug("Initialized");
     }
 
     public static void Clear()

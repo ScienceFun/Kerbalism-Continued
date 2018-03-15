@@ -10,6 +10,7 @@ namespace KERBALISM
       // initialize data
       parts = new Dictionary<uint, Color>();
       prev_parts = new Dictionary<uint, Color>();
+      Lib.Debug("Initialized");
     }
 
     public static void Update()

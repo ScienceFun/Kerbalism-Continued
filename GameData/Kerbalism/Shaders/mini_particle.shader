@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 // render a 1 pixel point sprite
 // - POINT_COLOR: point color
 
@@ -34,7 +36,7 @@ Shader "Custom/MiniParticle"
       {
         // output clip-space vertex position
         v2f o;
-        o.pos = mul(UNITY_MATRIX_MVP, in_pos);
+        o.pos = UnityObjectToClipPos(in_pos);
 
         // pass down point size
         o.size = 1.0;

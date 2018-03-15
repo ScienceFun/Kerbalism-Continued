@@ -254,6 +254,8 @@ namespace KERBALISM
         IsBackground = true
       };
       preprocess_thread.Start();
+
+      Lib.Debug("Initialized");
     }
 
     // do the particle-fitting in another thread
